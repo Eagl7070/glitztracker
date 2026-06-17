@@ -65,12 +65,34 @@ def del_cash_route(rid):
 @api_bp.route("/cash/target", methods=["POST"])
 @login_required
 def set_target():
-    try: t = float((request.json or {})["target_price"])
+    """Set global target (legacy) or per-route target."""
+    body = request.json or {}
+    route_id = body.get("route_id")
+    try: t = float(body["target_price"])
     except: return jsonify({"error":"target_price required"}), 400
+    if route_id:
+        route = CashRoute.query.filter_by(id=route_id, user_id=current_user.id).first_or_404()
+        route.target_price = t
+        db.session.commit()
+        return jsonify({"route_id": route_id, "target_price": t})
+    # Global fallback
     current_user.global_target_price = t
     CashRoute.query.filter_by(user_id=current_user.id).update({"target_price":t})
     db.session.commit()
-    return jsonify({"target_price":t})
+    return jsonify({"target_price": t})
+
+
+@api_bp.route("/award/routes/<int:rid>/target", methods=["POST"])
+@login_required
+def set_award_target(rid):
+    """Set per-award-route miles target."""
+    route = AwardRoute.query.filter_by(id=rid, user_id=current_user.id).first_or_404()
+    body = request.json or {}
+    try: miles = int(body["max_miles"])
+    except: return jsonify({"error":"max_miles required"}), 400
+    route.max_miles = miles
+    db.session.commit()
+    return jsonify({"route_id": rid, "max_miles": miles})
 
 
 @api_bp.route("/award/routes")
