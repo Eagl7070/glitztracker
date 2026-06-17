@@ -1,0 +1,58 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Upgrade — GlitzTracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#f5c842;--ink:#f0f4ff;--muted:#8a9ab8;--glass:rgba(8,12,24,0.88);--line:rgba(255,255,255,.1);--serif:"Playfair Display",serif;--sans:"DM Sans",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:#7a90b8;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 24px}
+.wrap{width:100%;max-width:800px}
+.logo{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--ink);margin-bottom:32px;display:block}.logo em{color:var(--gold);font-style:normal}
+h1{font-family:var(--serif);font-size:32px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.sub{font-size:15px;color:var(--muted);margin-bottom:32px}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:640px){.plans{grid-template-columns:1fr}}
+.plan{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--line);border-radius:16px;padding:26px}
+.plan.pop{border-color:rgba(245,200,66,.35);position:relative}
+.plan.pop::before{content:"Most Popular";position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--gold);color:#1a1000;font-size:11px;font-weight:700;padding:3px 14px;border-radius:20px;white-space:nowrap}
+.pname{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.pprice{font-family:var(--serif);font-size:38px;font-weight:700;line-height:1}.pprice span{font-size:14px;font-weight:400;color:var(--muted)}
+.pdesc{font-size:13px;color:var(--muted);margin:8px 0 18px;line-height:1.5}
+ul{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
+li{font-size:13px;color:var(--ink);display:flex;gap:7px}
+li::before{content:"✓";color:var(--gold);font-weight:700;flex-shrink:0}
+li.no::before{content:"✕";color:var(--muted)}.li.no{color:var(--muted)}
+.pbtn{width:100%;padding:11px;border-radius:8px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;border:none;display:block;text-align:center;text-decoration:none}
+.pbtn.g{background:var(--gold);color:#1a1000}.pbtn.g:hover{background:#ffd966}
+.pbtn.o{background:transparent;color:var(--ink);border:1px solid rgba(255,255,255,.15)}.pbtn.o:hover{border-color:var(--gold);color:var(--gold)}
+.back{display:inline-block;margin-top:24px;font-size:13px;color:var(--muted)}.back:hover{color:var(--gold)}
+.flash{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px}
+.flash.error{background:rgba(224,85,85,.15);border:1px solid rgba(224,85,85,.3);color:#f09090}
+.flash.success{background:rgba(76,175,122,.15);border:1px solid rgba(76,175,122,.3);color:#7fe8a8}
+</style></head><body>
+<div class="wrap">
+  <a class="logo" href="/dashboard">Glitz<em>Tracker</em></a>
+  <h1>Upgrade your plan</h1>
+  <div class="sub">Cancel anytime. No contracts.</div>
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for cat,msg in messages %}<div class="flash {{cat}}">{{msg}}</div>{% endfor %}{% endwith %}
+  <div class="plans">
+    <div class="plan">
+      <div class="pname">Free</div><div class="pprice">$0<span>/mo</span></div>
+      <div class="pdesc">Current plan</div>
+      <ul><li>1 cash route</li><li>Business class</li><li>Daily checks</li><li>Email alerts</li><li class="no">SMS/Telegram</li><li class="no">Award tracking</li><li class="no">SWU log</li></ul>
+      <span class="pbtn o" style="opacity:.5;cursor:default">Current plan</span>
+    </div>
+    <div class="plan pop">
+      <div class="pname">Pro</div><div class="pprice">$9.99<span>/mo</span></div>
+      <div class="pdesc">For serious points travelers.</div>
+      <ul><li>10 cash routes</li><li>All cabins & alliances</li><li>8-hour checks</li><li>SMS + Telegram + email</li><li>Award space tracking</li><li>Price history</li><li class="no">SWU log & alerts</li></ul>
+      <a href="/billing/checkout/pro" class="pbtn g">Upgrade to Pro →</a>
+    </div>
+    <div class="plan">
+      <div class="pname">Elite</div><div class="pprice">$19.99<span>/mo</span></div>
+      <div class="pdesc">Everything. No limits.</div>
+      <ul><li>Unlimited routes</li><li>All cabins & alliances</li><li>4-hour checks</li><li>SMS + Telegram + email</li><li>Award space tracking</li><li>SWU log + instant SMS</li><li>Price history</li></ul>
+      <a href="/billing/checkout/elite" class="pbtn o">Go Elite →</a>
+    </div>
+  </div>
+  <a href="/dashboard" class="back">← Back to dashboard</a>
+</div></body></html>
