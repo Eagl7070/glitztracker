@@ -269,6 +269,39 @@ textarea{resize:vertical;min-height:60px}
 .pill-sub{font-size:11px;color:var(--muted);text-align:right;align-self:flex-end;
   white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis}
 
+
+/* Airline lookup */
+.al-wrap{position:relative}
+.al-input{width:100%;font-family:var(--mono);font-size:13px;
+  background:rgba(0,0,0,.38);border:1px solid var(--line);border-radius:6px;
+  padding:8px 10px;color:var(--ink)}
+.al-input:focus{outline:none;border-color:var(--gold)}
+.al-drop{position:absolute;top:100%;left:0;right:0;
+  background:rgba(6,10,20,.97);border:1px solid var(--gold);
+  border-radius:0 0 8px 8px;max-height:220px;overflow-y:auto;z-index:999;
+  box-shadow:0 8px 24px rgba(0,0,0,.6);display:none}
+.al-item{padding:9px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;
+  font-size:13px;border-bottom:1px solid rgba(255,255,255,.05)}
+.al-item:hover{background:rgba(245,200,66,.1)}
+.al-code{font-family:var(--mono);font-weight:700;color:var(--gold);
+  background:rgba(245,200,66,.1);padding:2px 7px;border-radius:4px;font-size:12px;flex-shrink:0}
+.al-name{color:var(--ink2);font-size:12px;flex:1}
+.al-alliance{font-size:10px;padding:1px 6px;border-radius:3px;font-family:var(--mono)}
+.al-ow{color:var(--gold);background:rgba(245,200,66,.1)}
+.al-st{color:#7ab8e8;background:rgba(122,184,232,.1)}
+.al-sa{color:var(--ink2);background:rgba(255,255,255,.06)}
+.al-tag{display:flex;align-items:center;gap:4px;background:rgba(245,200,66,.08);
+  border:1px solid rgba(245,200,66,.2);border-radius:4px;padding:2px 7px;
+  font-family:var(--mono);font-size:12px;color:var(--gold)}
+.al-tags{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px;
+  background:rgba(0,0,0,.38);border:1px solid var(--line);border-radius:6px;
+  min-height:38px;cursor:text}
+.al-tags:focus-within{border-color:var(--gold)}
+.date-sel{background:rgba(0,0,0,.38);border:1px solid var(--line);border-radius:6px;
+  padding:8px 8px;color:var(--ink);font-family:var(--sans);font-size:13px;
+  cursor:pointer;-webkit-appearance:none}
+.date-sel:focus{outline:none;border-color:var(--gold)}
+
 </style>
 </head>
 <body>
@@ -360,10 +393,15 @@ textarea{resize:vertical;min-height:60px}
             </div>
           </div>
           <div id="customWrap" style="display:none;margin-bottom:10px">
-            <label class="flbl">Airlines (type code + Enter)</label>
-            <div class="airline-wrap" id="airWrap" onclick="document.getElementById('airInp').focus()">
-              <input class="a-input" id="airInp" placeholder="AA, BA, DL…" onkeydown="handleAir(event)">
+            <label class="flbl">Search airlines</label>
+            <div class="al-wrap">
+              <input type="text" id="airInp" class="al-input" placeholder="Type airline name or code…"
+                     autocomplete="off" oninput="alSearch(this,'airDrop','cash')"
+                     onfocus="alSearch(this,'airDrop','cash')"
+                     onblur="setTimeout(()=>document.getElementById('airDrop').style.display='none',200)">
+              <div id="airDrop" class="al-drop"></div>
             </div>
+            <div id="airTags" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
           </div>
           <div style="margin-bottom:10px">
             <label class="flbl">Cabin</label>
@@ -426,19 +464,10 @@ textarea{resize:vertical;min-height:60px}
             </div>
             <div>
               <label class="flbl">Date</label>
-              <div style="display:flex;gap:4px">
-                <select id="aMon" style="flex:1.3;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:8px 6px;color:var(--ink);font-family:var(--mono);font-size:13px">
-                  <option value="">Month</option>
-                  <option>01</option><option>02</option><option>03</option><option>04</option>
-                  <option>05</option><option>06</option><option>07</option><option>08</option>
-                  <option>09</option><option>10</option><option>11</option><option>12</option>
-                </select>
-                <select id="aDay" style="flex:1;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:8px 6px;color:var(--ink);font-family:var(--mono);font-size:13px">
-                  <option value="">Day</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option><option>24</option><option>25</option><option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option>
-                </select>
-                <select id="aYr" style="flex:1.2;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:8px 6px;color:var(--ink);font-family:var(--mono);font-size:13px">
-                  <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
-                </select>
+              <div style="display:flex;gap:6px">
+                <select id="aMon" class="date-sel" style="flex:2" onchange="updateDays('a')"><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06" selected>June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
+                <select id="aDay" class="date-sel" style="flex:1.2"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17" selected>17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+                <select id="aYr" class="date-sel" style="flex:1.4"><option value="2026">2026</option><option value="2027" selected>2027</option><option value="2028">2028</option></select>
               </div>
             </div>
           </div>
@@ -459,16 +488,13 @@ textarea{resize:vertical;min-height:60px}
               <button class="tgl" data-v="first" onclick="pickAC(this)">First</button>
             </div>
           </div>
-          <div class="form-row" style="margin-bottom:10px">
-            <div>
-              <label class="flbl">Alert me when miles drop below</label>
-              <input type="number" id="aMaxMiles" placeholder="e.g. 60000">
-            </div>
-            <div style="display:flex;align-items:flex-end;padding-bottom:2px;flex:0;white-space:nowrap">
-              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);cursor:pointer">
-                <input type="checkbox" id="aDirect" style="width:auto;accent-color:var(--teal)"> Nonstops only
-              </label>
-            </div>
+          <div style="margin-bottom:10px">
+            <label class="flbl">Alert me when miles drop below</label>
+            <input type="number" id="aMaxMiles" placeholder="e.g. 60000" style="margin-bottom:10px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:10px 14px;width:fit-content">
+              <input type="checkbox" id="aDirect" style="width:18px;height:18px;accent-color:var(--teal);cursor:pointer">
+              Nonstops only
+            </label>
           </div>
           <div style="margin-bottom:14px">
             <label class="flbl">Search these programs <span style="color:var(--muted);font-weight:400;letter-spacing:0;text-transform:none;font-size:11px">— select at least one</span></label>
@@ -479,36 +505,36 @@ textarea{resize:vertical;min-height:60px}
             <div style="margin-bottom:6px">
               <div style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Oneworld</div>
               <div style="display:flex;flex-wrap:wrap;gap:6px">
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="american" style="width:14px;height:14px;accent-color:var(--teal)"> American AAdvantage</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="alaska" style="width:14px;height:14px;accent-color:var(--teal)"> Alaska Mileage Plan</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="qantas" style="width:14px;height:14px;accent-color:var(--teal)"> Qantas Points</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="british" style="width:14px;height:14px;accent-color:var(--teal)"> British Avios</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="cathay" style="width:14px;height:14px;accent-color:var(--teal)"> Cathay Asia Miles</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="finnair" style="width:14px;height:14px;accent-color:var(--teal)"> Finnair Plus</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="iberia" style="width:14px;height:14px;accent-color:var(--teal)"> Iberia Plus</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="japan" style="width:14px;height:14px;accent-color:var(--teal)"> JAL Mileage Bank</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="american" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> American AAdvantage</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="alaska" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Alaska Mileage Plan</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="qantas" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Qantas Points</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="british" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> British Avios</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="cathay" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Cathay Asia Miles</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="finnair" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Finnair Plus</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="iberia" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Iberia Plus</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="japan" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> JAL Mileage Bank</label>
               </div>
             </div>
             <div style="margin-bottom:6px">
               <div style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">SkyTeam</div>
               <div style="display:flex;flex-wrap:wrap;gap:6px">
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="delta" style="width:14px;height:14px;accent-color:var(--teal)"> Delta SkyMiles</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="flying_blue" style="width:14px;height:14px;accent-color:var(--teal)"> Air France/KLM Flying Blue</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="korean" style="width:14px;height:14px;accent-color:var(--teal)"> Korean Air SKYPASS</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="aeromexico" style="width:14px;height:14px;accent-color:var(--teal)"> Aeromexico Club Premier</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="delta" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Delta SkyMiles</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="flying_blue" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Air France/KLM Flying Blue</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="korean" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Korean Air SKYPASS</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="aeromexico" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Aeromexico Club Premier</label>
               </div>
             </div>
             <div style="margin-bottom:6px">
               <div style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Star Alliance</div>
               <div style="display:flex;flex-wrap:wrap;gap:6px">
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="united" style="width:14px;height:14px;accent-color:var(--teal)"> United MileagePlus</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="lufthansa" style="width:14px;height:14px;accent-color:var(--teal)"> Lufthansa Miles & More</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="aeroplan" style="width:14px;height:14px;accent-color:var(--teal)"> Air Canada Aeroplan</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="ana" style="width:14px;height:14px;accent-color:var(--teal)"> ANA Mileage Club</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="swiss" style="width:14px;height:14px;accent-color:var(--teal)"> Swiss Miles & More</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="avianca" style="width:14px;height:14px;accent-color:var(--teal)"> Avianca LifeMiles</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="turkish" style="width:14px;height:14px;accent-color:var(--teal)"> Turkish Miles&Smiles</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="singapore" style="width:14px;height:14px;accent-color:var(--teal)"> Singapore KrisFlyer</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="united" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> United MileagePlus</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="lufthansa" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Lufthansa Miles & More</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="aeroplan" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Air Canada Aeroplan</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="ana" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> ANA Mileage Club</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="swiss" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Swiss Miles & More</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="avianca" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Avianca LifeMiles</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="turkish" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Turkish Miles&Smiles</label>
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:7px;padding:7px 12px;transition:all .15s" onmouseover="this.style.borderColor='rgba(77,217,192,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)'"><input type="checkbox" class="prog-check" value="singapore" style="width:16px;height:16px;accent-color:var(--teal);cursor:pointer;flex-shrink:0" onchange="this.closest('label').style.borderColor=this.checked?'rgba(77,217,192,.5)':'rgba(255,255,255,.18)'"> Singapore KrisFlyer</label>
               </div>
             </div>
           </div>
@@ -570,7 +596,17 @@ textarea{resize:vertical;min-height:60px}
           <hr class="div">
           <form method="POST" action="/dashboard/swu/add">
             <div class="form-row">
-              <div><label class="flbl">Airline</label><input type="text" name="airline" placeholder="AA" maxlength="3" required></div>
+              <div style="position:relative">
+  <label class="flbl">Airline</label>
+  <div class="al-wrap">
+    <input type="text" id="swuAirlineInp" class="al-input" placeholder="Type airline name or code…"
+           autocomplete="off" oninput="alSearch(this,'swuAirDrop','swu')"
+           onfocus="alSearch(this,'swuAirDrop','swu')"
+           onblur="setTimeout(()=>document.getElementById('swuAirDrop').style.display='none',200)">
+    <input type="hidden" name="airline" id="swuAirlineVal">
+    <div id="swuAirDrop" class="al-drop"></div>
+  </div>
+</div>
               <div><label class="flbl">Flight #</label><input type="text" name="flight_number" placeholder="70" maxlength="8" required></div>
               <div><label class="flbl">From</label><input type="text" name="origin" placeholder="DFW" maxlength="4" required></div>
               <div><label class="flbl">To</label><input type="text" name="destination" placeholder="LHR" maxlength="4" required></div>
@@ -969,7 +1005,7 @@ function addSlice(){sc++;$("#slices").insertAdjacentHTML("beforeend",`<div class
           <option value="11">Nov</option><option value="12">Dec</option>
         </select>
         <select class="sd-d" style="flex:1">${Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${i+1}</option>`).join('')}</select>
-        <select class="sd-y" style="flex:1.2">${[2025,2026,2027].map(y=>`<option value="${y}" ${y===2026?'selected':''}>${y}</option>`).join('')}</select>
+        <select class="sd-y" style="flex:1.2">['2026','2027','2028'].map((y)=>{const sel=y==='2027'?'selected':'';return`<option value="${y}" ${sel}>${y}</option>`;}).join('')</select>
       </div>
     </div>
   </div>
@@ -985,7 +1021,7 @@ async function submitItin(){
            arrival_id:b.querySelector(".st").value.toUpperCase().trim(),date};
   }).filter(s=>s.departure_id&&s.arrival_id&&s.date);
   if(!label||!slices.length){toast("Add a label and at least one leg");return}
-  const airlines=selA==="custom"?customAirlines:[];
+  const airlines=selA==="custom"?cashAirlines:[];
   const res=await jsend("/api/cash/routes","POST",{label,slices,alliance:selA,airlines,cabin:selC});
   if(res.error){toast("⚠ "+res.error,4000);return}
   hideItinForm();
@@ -1018,8 +1054,176 @@ async function delAward(id){await jsend("/api/award/routes/"+id,"DELETE");toast(
 function showSWUForm(){const el=$("#swuForm");if(el)el.style.display="block";}
 function hideSWUForm(){const el=$("#swuForm");if(el)el.style.display="none";}
 
-function selectAllPrograms(){document.querySelectorAll('.prog-check').forEach(c=>c.checked=true);}
-function clearAllPrograms(){document.querySelectorAll('.prog-check').forEach(c=>c.checked=false);}
+function selectAllPrograms(){
+  const boxes=document.querySelectorAll('#awardForm .prog-check');
+  boxes.forEach(c=>{c.checked=true;c.closest('label').style.borderColor='rgba(77,217,192,.5)';});
+  toast(boxes.length+' programs selected');
+}
+function clearAllPrograms(){
+  document.querySelectorAll('#awardForm .prog-check').forEach(c=>{
+    c.checked=false;c.closest('label').style.borderColor='rgba(255,255,255,.18)';
+  });
+}
+
+
+// ── Airline lookup ─────────────────────────────────────────────────────────
+const AIRLINES = [
+  {code:"AA",name:"American Airlines",alliance:"oneworld"},
+  {code:"BA",name:"British Airways",alliance:"oneworld"},
+  {code:"QR",name:"Qatar Airways",alliance:"oneworld"},
+  {code:"JL",name:"Japan Airlines",alliance:"oneworld"},
+  {code:"QF",name:"Qantas",alliance:"oneworld"},
+  {code:"CX",name:"Cathay Pacific",alliance:"oneworld"},
+  {code:"IB",name:"Iberia",alliance:"oneworld"},
+  {code:"AY",name:"Finnair",alliance:"oneworld"},
+  {code:"AS",name:"Alaska Airlines",alliance:"oneworld"},
+  {code:"MH",name:"Malaysia Airlines",alliance:"oneworld"},
+  {code:"UL",name:"SriLankan Airlines",alliance:"oneworld"},
+  {code:"RJ",name:"Royal Jordanian",alliance:"oneworld"},
+  {code:"AT",name:"Royal Air Maroc",alliance:"oneworld"},
+  {code:"S7",name:"S7 Airlines",alliance:"oneworld"},
+  {code:"FJ",name:"Fiji Airways",alliance:"oneworld"},
+  {code:"DL",name:"Delta Air Lines",alliance:"skyteam"},
+  {code:"AF",name:"Air France",alliance:"skyteam"},
+  {code:"KL",name:"KLM Royal Dutch",alliance:"skyteam"},
+  {code:"AM",name:"Aeromexico",alliance:"skyteam"},
+  {code:"MU",name:"China Eastern",alliance:"skyteam"},
+  {code:"KE",name:"Korean Air",alliance:"skyteam"},
+  {code:"SU",name:"Aeroflot",alliance:"skyteam"},
+  {code:"AZ",name:"ITA Airways",alliance:"skyteam"},
+  {code:"CZ",name:"China Southern",alliance:"skyteam"},
+  {code:"GA",name:"Garuda Indonesia",alliance:"skyteam"},
+  {code:"KQ",name:"Kenya Airways",alliance:"skyteam"},
+  {code:"ME",name:"Middle East Airlines",alliance:"skyteam"},
+  {code:"OK",name:"Czech Airlines",alliance:"skyteam"},
+  {code:"SV",name:"Saudia",alliance:"skyteam"},
+  {code:"UX",name:"Air Europa",alliance:"skyteam"},
+  {code:"VN",name:"Vietnam Airlines",alliance:"skyteam"},
+  {code:"VS",name:"Virgin Atlantic",alliance:"skyteam"},
+  {code:"UA",name:"United Airlines",alliance:"staralliance"},
+  {code:"LH",name:"Lufthansa",alliance:"staralliance"},
+  {code:"NH",name:"ANA All Nippon",alliance:"staralliance"},
+  {code:"AC",name:"Air Canada",alliance:"staralliance"},
+  {code:"OS",name:"Austrian Airlines",alliance:"staralliance"},
+  {code:"LO",name:"LOT Polish",alliance:"staralliance"},
+  {code:"AV",name:"Avianca",alliance:"staralliance"},
+  {code:"MS",name:"EgyptAir",alliance:"staralliance"},
+  {code:"SN",name:"Brussels Airlines",alliance:"staralliance"},
+  {code:"BR",name:"EVA Air",alliance:"staralliance"},
+  {code:"CA",name:"Air China",alliance:"staralliance"},
+  {code:"CM",name:"Copa Airlines",alliance:"staralliance"},
+  {code:"ET",name:"Ethiopian Airlines",alliance:"staralliance"},
+  {code:"LX",name:"Swiss International",alliance:"staralliance"},
+  {code:"OZ",name:"Asiana Airlines",alliance:"staralliance"},
+  {code:"SA",name:"South African Airways",alliance:"staralliance"},
+  {code:"SK",name:"SAS Scandinavian",alliance:"staralliance"},
+  {code:"TG",name:"Thai Airways",alliance:"staralliance"},
+  {code:"TP",name:"TAP Air Portugal",alliance:"staralliance"},
+  {code:"TK",name:"Turkish Airlines",alliance:"staralliance"},
+  {code:"A3",name:"Aegean Airlines",alliance:"staralliance"},
+  {code:"AI",name:"Air India",alliance:"staralliance"},
+  {code:"NZ",name:"Air New Zealand",alliance:"staralliance"},
+  {code:"SQ",name:"Singapore Airlines",alliance:"staralliance"},
+  {code:"ZH",name:"Shenzhen Airlines",alliance:"staralliance"},
+];
+
+
+const ALLIANCE_CLS = {oneworld:'al-ow',skyteam:'al-st',staralliance:'al-sa'};
+let cashAirlines = []; // selected codes for cash custom filter
+
+function alSearch(inp, dropId, mode){
+  const q = (inp.value||'').trim().toUpperCase();
+  const drop = document.getElementById(dropId);
+  if(!drop) return;
+  if(q.length < 1){ drop.style.display='none'; return; }
+  const matches = AIRLINES.filter(a =>
+    a.code.startsWith(q) ||
+    a.name.toUpperCase().includes(q) ||
+    a.alliance.toUpperCase().includes(q)
+  ).slice(0, 10);
+  if(!matches.length){ drop.style.display='none'; return; }
+  drop.innerHTML = matches.map(a => {
+    const ac = ALLIANCE_CLS[a.alliance] || '';
+    return `<div class="al-item" onmousedown="alPick('${a.code}','${a.name}','${mode}',${JSON.stringify(dropId)})">
+      <span class="al-code">${a.code}</span>
+      <span class="al-name">${a.name}</span>
+      <span class="al-alliance ${ac}">${a.alliance.replace('staralliance','★').replace('oneworld','⬟').replace('skyteam','◆')}</span>
+    </div>`;
+  }).join('');
+  drop.style.display = 'block';
+}
+
+function alPick(code, name, mode, dropId){
+  const drop = document.getElementById(dropId);
+  if(drop) drop.style.display = 'none';
+  if(mode === 'cash'){
+    if(!cashAirlines.includes(code)){
+      cashAirlines.push(code);
+      renderAirTags();
+    }
+    const inp = document.getElementById('airInp');
+    if(inp) inp.value = '';
+  } else if(mode === 'swu'){
+    const inp = document.getElementById('swuAirlineInp');
+    const val = document.getElementById('swuAirlineVal');
+    if(inp) inp.value = code + ' — ' + name;
+    if(val) val.value = code;
+  }
+}
+
+function renderAirTags(){
+  const wrap = document.getElementById('airTags');
+  if(!wrap) return;
+  wrap.innerHTML = cashAirlines.map(c => {
+    const al = AIRLINES.find(a=>a.code===c);
+    return `<span class="al-tag">${c} ${al?' · '+al.name:''} <button onclick="removeAir('${c}')" style="background:none;border:none;color:var(--muted);cursor:pointer;margin-left:3px;font-size:14px;line-height:1">×</button></span>`;
+  }).join('');
+}
+
+function removeAir(code){
+  cashAirlines = cashAirlines.filter(c => c !== code);
+  renderAirTags();
+}
+
+// ── Date helpers ───────────────────────────────────────────────────────────
+function updateDays(prefix){
+  // Recalculate days in month when month changes
+  const monEl = document.getElementById(prefix+'Mon');
+  const dayEl = document.getElementById(prefix+'Day');
+  const yrEl  = document.getElementById(prefix+'Yr');
+  if(!monEl||!dayEl) return;
+  const m = parseInt(monEl.value)||1;
+  const y = parseInt(yrEl?.value)||new Date().getFullYear();
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const curDay = parseInt(dayEl.value)||1;
+  let opts = '<option value="">Day</option>';
+  for(let d=1;d<=daysInMonth;d++){
+    const sel = d===curDay?' selected':'';
+    opts += `<option value="${String(d).padStart(2,'0')}"${sel}>${d}</option>`;
+  }
+  dayEl.innerHTML = opts;
+}
+
+function updateSliceDays(monSel){
+  const block = monSel.closest('.date-selects');
+  if(!block) return;
+  const dayEl = block.querySelector('.sd-d');
+  const yrEl  = block.querySelector('.sd-y');
+  if(!dayEl) return;
+  const m = parseInt(monSel.value)||1;
+  const y = parseInt(yrEl?.value)||new Date().getFullYear();
+  const daysInMonth = new Date(y,m,0).getDate();
+  const curDay = parseInt(dayEl.value)||1;
+  let opts = '<option value="">Day</option>';
+  for(let d=1;d<=daysInMonth;d++){
+    const sel = d===curDay?' selected':'';
+    opts += `<option value="${String(d).padStart(2,'0')}"${sel}>${d}</option>`;
+  }
+  dayEl.innerHTML = opts;
+}
+
+// Override submitItin to use cashAirlines
+const _origSubmitItin = submitItin;
 
 loadAll();
 setInterval(loadAll,5*60*1000);
