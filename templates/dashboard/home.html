@@ -994,7 +994,7 @@ function addMCLeg(){
     <div><label class="flbl">Date</label>
       <input type="hidden" class="sd">
       <div style="display:flex;gap:6px">
-        <select class="sd-m date-sel" style="flex:2" onchange="updateSliceDays(this)">${['',...['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']].map((m,i)=>i===0?`<option value=''>Month</option>`:`<option value='${String(i).padStart(2,'0')}' ${i===6?'selected':''}>${m}</option>`).join('')}</select>
+        <select class="sd-m date-sel" style="flex:2" onchange="updateSliceDays(this)">${['','January','February','March','April','May','June','July','August','September','October','November','December'].map((m,i)=>i===0?`<option value=''>Month</option>`:`<option value='${String(i).padStart(2,'0')}' ${i===6?'selected':''}>${m}</option>`).join('')}</select>
         <select class="sd-d date-sel" style="flex:1.2">${Array.from({length:31},(_,i)=>`<option value='${String(i+1).padStart(2,'0')}' ${i+1===17?'selected':''}>${i+1}</option>`).join('')}</select>
         <select class="sd-y date-sel" style="flex:1.4">${[2026,2027,2028].map(y=>`<option value='${y}' ${y===2027?'selected':''}>${y}</option>`).join('')}</select>
       </div>
