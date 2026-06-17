@@ -111,7 +111,7 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;
 .stat-sub{font-size:11px;color:var(--muted);margin-top:3px}
 
 /* ── Grid ── */
-.grid{display:grid;grid-template-columns:1.35fr 1fr;gap:18px}
+.grid{display:grid;grid-template-columns:1fr;gap:18px;max-width:900px;margin:0 auto}
 @media(max-width:920px){.grid{grid-template-columns:1fr}}
 
 /* ── Card ── */
@@ -242,6 +242,158 @@ textarea{resize:vertical;min-height:60px}
 
   <div class="grid">
 
+    <!-- Single column layout -->
+    <div>
+
+      <!-- Cash itineraries (moved to left, top) -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Cash itineraries</div>
+          <button class="btn sm" id="showItinBtn" onclick="document.getElementById('itinForm').style.display='block';document.getElementById('showItinBtn').style.display='none';if(!sc)addSlice();">+ Add</button>
+        </div>
+        <div id="itinList"></div>
+        <div id="itinForm" style="display:none">
+          <hr class="div">
+          <div style="margin-bottom:10px"><label class="flbl">Label</label><input type="text" id="newLabel" placeholder="e.g. DFW-NRT // ICN-ORD"></div>
+          <div style="margin-bottom:10px">
+            <label class="flbl">Alliance</label>
+            <div class="toggle-group" id="alliGrp">
+              <button class="tgl on" data-v="oneworld" onclick="pickA(this)">Oneworld</button>
+              <button class="tgl" data-v="skyteam" onclick="pickA(this)">SkyTeam</button>
+              <button class="tgl" data-v="staralliance" onclick="pickA(this)">Star Alliance</button>
+              <button class="tgl" data-v="any" onclick="pickA(this)">Any</button>
+              <button class="tgl" data-v="custom" onclick="pickA(this)">Custom</button>
+            </div>
+          </div>
+          <div id="customWrap" style="display:none;margin-bottom:10px">
+            <label class="flbl">Airlines (type code + Enter)</label>
+            <div class="airline-wrap" id="airWrap" onclick="document.getElementById('airInp').focus()">
+              <input class="a-input" id="airInp" placeholder="AA, BA, DL…" onkeydown="handleAir(event)">
+            </div>
+          </div>
+          <div style="margin-bottom:10px">
+            <label class="flbl">Cabin</label>
+            <div class="toggle-group" id="cabGrp">
+              <button class="tgl" data-v="economy" onclick="pickC(this)">Economy</button>
+              <button class="tgl" data-v="premium_economy" onclick="pickC(this)">Prem Eco</button>
+              <button class="tgl on" data-v="business" onclick="pickC(this)">Business</button>
+              <button class="tgl" data-v="first" onclick="pickC(this)">First</button>
+            </div>
+          </div>
+          <div id="slices"></div>
+          <div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn sm" onclick="addSlice()">+ Add leg</button></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn gold" onclick="submitItin()">Add itinerary</button>
+            <button class="btn" onclick="hideItinForm()">Cancel</button>
+          </div>
+        </div>
+        {% if current_user.plan == "free" and current_user.cash_routes|length >= 1 %}
+        <div class="upsell" style="margin-top:12px">
+          <p>Free plan = 1 route. <strong>Pro</strong> gives you 10. <strong>Elite</strong> is unlimited.</p>
+          <a href="/billing/upgrade"><button class="btn gold">Upgrade →</button></a>
+        </div>
+        {% endif %}
+      </div>
+
+
+      <!-- Alert target -->
+      <!-- Target -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px">Alert target</div>
+        <div class="form-row">
+          <div><label class="flbl">Alert when fare drops to (USD)</label><input type="number" id="targetInput" placeholder="3000" value="{{current_user.global_target_price or 3000}}"></div>
+          <div style="flex:0"><label class="flbl">&nbsp;</label><button class="btn gold" onclick="saveTarget()">Save</button></div>
+        </div>
+      </div>
+
+      <!-- SWU + Award (already combined) -->
+    <!-- Award routes moved here, below SWU -->
+      <!-- Award routes -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Award routes</div>
+          {% if current_user.can_award_track %}
+          <button class="btn sm" onclick="showAwardForm()">+ Add</button>
+          {% endif %}
+        </div>
+        {% if current_user.can_award_track %}
+        <div id="awardList" style="margin-bottom:10px"></div>
+        <div id="awardForm" style="display:none">
+          <hr class="div">
+          <div style="margin-bottom:10px"><label class="flbl">Label (optional)</label><input type="text" id="aLabel" placeholder="DFW-NRT Business Oneworld"></div>
+          <div class="form-row" style="margin-bottom:10px">
+            <div><label class="flbl">From</label><input type="text" id="aFrom" placeholder="DFW" maxlength="4"></div>
+            <div><label class="flbl">To</label><input type="text" id="aTo" placeholder="NRT" maxlength="4"></div>
+            <div>
+  <label class="flbl">Date</label>
+  <div style="display:flex;gap:4px">
+    <select id="aMon" style="flex:1.3;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:8px 6px;color:var(--ink);font-family:var(--mono);font-size:13px">
+      <option value="">Month</option>
+      <option>01</option><option>02</option><option>03</option><option>04</option>
+      <option>05</option><option>06</option><option>07</option><option>08</option>
+      <option>09</option><option>10</option><option>11</option><option>12</option>
+    </select>
+    <select id="aDay" style="flex:1;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:8px 6px;color:var(--ink);font-family:var(--mono);font-size:13px">
+      <option value="">Day</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option><option>24</option><option>25</option><option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option>
+    </select>
+    <select id="aYr" style="flex:1.2;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:8px 6px;color:var(--ink);font-family:var(--mono);font-size:13px">
+      <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+    </select>
+  </div>
+</div>
+          </div>
+          <div style="margin-bottom:10px">
+            <label class="flbl">Trip type</label>
+            <div class="toggle-group" id="tripGrp">
+              <button class="tgl on" data-v="one_way" onclick="pickT(this)">One way</button>
+              <button class="tgl" data-v="round_trip" onclick="pickT(this)">Round trip</button>
+              <button class="tgl" data-v="multi_city" onclick="pickT(this)">Multi-city</button>
+            </div>
+          </div>
+          <div style="margin-bottom:10px">
+            <label class="flbl">Cabin</label>
+            <div class="toggle-group" id="aCabGrp">
+              <button class="tgl" data-v="economy" onclick="pickAC(this)">Economy</button>
+              <button class="tgl" data-v="premium_economy" onclick="pickAC(this)">Prem Eco</button>
+              <button class="tgl on" data-v="business" onclick="pickAC(this)">Business</button>
+              <button class="tgl" data-v="first" onclick="pickAC(this)">First</button>
+            </div>
+          </div>
+          <div style="margin-bottom:10px">
+            <label class="flbl">Alliance</label>
+            <div class="toggle-group" id="aAlliGrp">
+              <button class="tgl on" data-v="oneworld" onclick="pickAA(this)">Oneworld</button>
+              <button class="tgl" data-v="skyteam" onclick="pickAA(this)">SkyTeam</button>
+              <button class="tgl" data-v="staralliance" onclick="pickAA(this)">Star Alliance</button>
+              <button class="tgl" data-v="any" onclick="pickAA(this)">Any</button>
+            </div>
+          </div>
+          <div class="form-row" style="margin-bottom:12px">
+            <div><label class="flbl">Max miles</label><input type="number" id="aMaxMiles" placeholder="75000"></div>
+            <div style="display:flex;align-items:flex-end;padding-bottom:2px;flex:0;white-space:nowrap">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);cursor:pointer">
+                <input type="checkbox" id="aDirect" style="width:auto;accent-color:var(--gold)"> Nonstops only
+              </label>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn gold" onclick="submitAward()">Add route</button>
+            <button class="btn" onclick="hideAwardForm()">Cancel</button>
+          </div>
+        </div>
+        {% else %}
+        <div class="upsell">
+          <p>Award space tracking searches <strong>20+ programs</strong> simultaneously and shows miles + taxes. Pro & Elite only.</p>
+          <a href="/billing/upgrade"><button class="btn gold">Upgrade to unlock →</button></a>
+        </div>
+        {% endif %}
+      </div>
+
+
+
+
+
+      <!-- Price & Award History chart (bottom) -->
     <!-- Left: chart -->
     <div>
       <div class="card">
@@ -345,161 +497,6 @@ textarea{resize:vertical;min-height:60px}
       {% endif %}
     </div>
 
-    <!-- Award routes moved here, below SWU -->
-      <!-- Award routes -->
-      <div class="card">
-        <div class="card-hdr">
-          <div class="card-title">Award routes</div>
-          {% if current_user.can_award_track %}
-          <button class="btn sm" onclick="showAwardForm()">+ Add</button>
-          {% endif %}
-        </div>
-        {% if current_user.can_award_track %}
-        <div id="awardList" style="margin-bottom:10px"></div>
-        <div id="awardForm" style="display:none">
-          <hr class="div">
-          <div style="margin-bottom:10px"><label class="flbl">Label (optional)</label><input type="text" id="aLabel" placeholder="DFW-NRT Business Oneworld"></div>
-          <div class="form-row" style="margin-bottom:10px">
-            <div><label class="flbl">From</label><input type="text" id="aFrom" placeholder="DFW" maxlength="4"></div>
-            <div><label class="flbl">To</label><input type="text" id="aTo" placeholder="NRT" maxlength="4"></div>
-            <div>
-  <label class="flbl">Date</label>
-  <div style="display:flex;gap:4px">
-    <select id="aMon" style="flex:1.3;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:8px 6px;color:var(--ink);font-family:var(--mono);font-size:13px">
-      <option value="">Month</option>
-      <option>01</option><option>02</option><option>03</option><option>04</option>
-      <option>05</option><option>06</option><option>07</option><option>08</option>
-      <option>09</option><option>10</option><option>11</option><option>12</option>
-    </select>
-    <select id="aDay" style="flex:1;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:8px 6px;color:var(--ink);font-family:var(--mono);font-size:13px">
-      <option value="">Day</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option><option>24</option><option>25</option><option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option>
-    </select>
-    <select id="aYr" style="flex:1.2;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:8px 6px;color:var(--ink);font-family:var(--mono);font-size:13px">
-      <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
-    </select>
-  </div>
-</div>
-          </div>
-          <div style="margin-bottom:10px">
-            <label class="flbl">Trip type</label>
-            <div class="toggle-group" id="tripGrp">
-              <button class="tgl on" data-v="one_way" onclick="pickT(this)">One way</button>
-              <button class="tgl" data-v="round_trip" onclick="pickT(this)">Round trip</button>
-              <button class="tgl" data-v="multi_city" onclick="pickT(this)">Multi-city</button>
-            </div>
-          </div>
-          <div style="margin-bottom:10px">
-            <label class="flbl">Cabin</label>
-            <div class="toggle-group" id="aCabGrp">
-              <button class="tgl" data-v="economy" onclick="pickAC(this)">Economy</button>
-              <button class="tgl" data-v="premium_economy" onclick="pickAC(this)">Prem Eco</button>
-              <button class="tgl on" data-v="business" onclick="pickAC(this)">Business</button>
-              <button class="tgl" data-v="first" onclick="pickAC(this)">First</button>
-            </div>
-          </div>
-          <div style="margin-bottom:10px">
-            <label class="flbl">Alliance</label>
-            <div class="toggle-group" id="aAlliGrp">
-              <button class="tgl on" data-v="oneworld" onclick="pickAA(this)">Oneworld</button>
-              <button class="tgl" data-v="skyteam" onclick="pickAA(this)">SkyTeam</button>
-              <button class="tgl" data-v="staralliance" onclick="pickAA(this)">Star Alliance</button>
-              <button class="tgl" data-v="any" onclick="pickAA(this)">Any</button>
-            </div>
-          </div>
-          <div class="form-row" style="margin-bottom:12px">
-            <div><label class="flbl">Max miles</label><input type="number" id="aMaxMiles" placeholder="75000"></div>
-            <div style="display:flex;align-items:flex-end;padding-bottom:2px;flex:0;white-space:nowrap">
-              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);cursor:pointer">
-                <input type="checkbox" id="aDirect" style="width:auto;accent-color:var(--gold)"> Nonstops only
-              </label>
-            </div>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn gold" onclick="submitAward()">Add route</button>
-            <button class="btn" onclick="hideAwardForm()">Cancel</button>
-          </div>
-        </div>
-        {% else %}
-        <div class="upsell">
-          <p>Award space tracking searches <strong>20+ programs</strong> simultaneously and shows miles + taxes. Pro & Elite only.</p>
-          <a href="/billing/upgrade"><button class="btn gold">Upgrade to unlock →</button></a>
-        </div>
-        {% endif %}
-      </div>
-
-
-
-    <!-- Right: controls -->
-    <div>
-
-      <!-- Target -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:12px">Alert target</div>
-        <div class="form-row">
-          <div><label class="flbl">Alert when fare drops to (USD)</label><input type="number" id="targetInput" placeholder="3000" value="{{current_user.global_target_price or 3000}}"></div>
-          <div style="flex:0"><label class="flbl">&nbsp;</label><button class="btn gold" onclick="saveTarget()">Save</button></div>
-        </div>
-      </div>
-
-      <!-- Notifications banner -->
-      {% if not current_user.notify_sms and current_user.plan != "free" %}
-      <div class="upgrade-banner" style="margin-top:14px">
-        <p><strong>📱 Enable SMS alerts</strong> — fastest way to catch deals before they vanish.</p>
-        <a href="/auth/account"><button class="btn sm">Set up SMS</button></a>
-      </div>
-      {% endif %}
-
-      <!-- Cash itineraries -->
-      <div class="card">
-        <div class="card-hdr">
-          <div class="card-title">Cash itineraries</div>
-          <button class="btn sm" id="showItinBtn" onclick="document.getElementById('itinForm').style.display='block';document.getElementById('showItinBtn').style.display='none';if(!sc)addSlice();">+ Add</button>
-        </div>
-        <div id="itinList"></div>
-        <div id="itinForm" style="display:none">
-          <hr class="div">
-          <div style="margin-bottom:10px"><label class="flbl">Label</label><input type="text" id="newLabel" placeholder="e.g. DFW-NRT // ICN-ORD"></div>
-          <div style="margin-bottom:10px">
-            <label class="flbl">Alliance</label>
-            <div class="toggle-group" id="alliGrp">
-              <button class="tgl on" data-v="oneworld" onclick="pickA(this)">Oneworld</button>
-              <button class="tgl" data-v="skyteam" onclick="pickA(this)">SkyTeam</button>
-              <button class="tgl" data-v="staralliance" onclick="pickA(this)">Star Alliance</button>
-              <button class="tgl" data-v="any" onclick="pickA(this)">Any</button>
-              <button class="tgl" data-v="custom" onclick="pickA(this)">Custom</button>
-            </div>
-          </div>
-          <div id="customWrap" style="display:none;margin-bottom:10px">
-            <label class="flbl">Airlines (type code + Enter)</label>
-            <div class="airline-wrap" id="airWrap" onclick="document.getElementById('airInp').focus()">
-              <input class="a-input" id="airInp" placeholder="AA, BA, DL…" onkeydown="handleAir(event)">
-            </div>
-          </div>
-          <div style="margin-bottom:10px">
-            <label class="flbl">Cabin</label>
-            <div class="toggle-group" id="cabGrp">
-              <button class="tgl" data-v="economy" onclick="pickC(this)">Economy</button>
-              <button class="tgl" data-v="premium_economy" onclick="pickC(this)">Prem Eco</button>
-              <button class="tgl on" data-v="business" onclick="pickC(this)">Business</button>
-              <button class="tgl" data-v="first" onclick="pickC(this)">First</button>
-            </div>
-          </div>
-          <div id="slices"></div>
-          <div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn sm" onclick="addSlice()">+ Add leg</button></div>
-          <div style="display:flex;gap:8px">
-            <button class="btn gold" onclick="submitItin()">Add itinerary</button>
-            <button class="btn" onclick="hideItinForm()">Cancel</button>
-          </div>
-        </div>
-        {% if current_user.plan == "free" and current_user.cash_routes|length >= 1 %}
-        <div class="upsell" style="margin-top:12px">
-          <p>Free plan = 1 route. <strong>Pro</strong> gives you 10. <strong>Elite</strong> is unlimited.</p>
-          <a href="/billing/upgrade"><button class="btn gold">Upgrade →</button></a>
-        </div>
-        {% endif %}
-      </div>
-
-    </div>
   </div>
 </div>
 
