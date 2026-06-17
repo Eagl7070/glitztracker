@@ -60,6 +60,22 @@ hr.div{border:none;border-top:1px solid var(--line);margin:16px 0}
 .back:hover{color:var(--gold)}
 .notify-info{background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.15);
   border-radius:8px;padding:10px 14px;font-size:12px;color:var(--ink2);margin-bottom:14px;line-height:1.5}
+
+.ap-wrap{position:relative}
+.al-input{width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);
+  border-radius:7px;padding:10px 12px;color:var(--ink);font-family:var(--mono);font-size:13px}
+.al-input:focus{outline:none;border-color:var(--gold)}
+.ap-drop{position:absolute;top:100%;left:0;right:0;
+  background:rgba(6,10,20,.97);border:1px solid var(--gold);
+  border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:999;
+  box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.ap-item{padding:9px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;
+  font-size:13px;border-bottom:1px solid rgba(255,255,255,.05)}
+.ap-item:hover{background:rgba(245,200,66,.1)}
+.ap-code{font-family:var(--mono);font-weight:700;color:var(--gold);
+  background:rgba(245,200,66,.1);padding:2px 7px;border-radius:4px;font-size:12px;flex-shrink:0}
+.ap-name{color:var(--ink2);font-size:12px}
+
 </style>
 </head>
 <body>
@@ -94,6 +110,22 @@ hr.div{border:none;border-top:1px solid var(--line);margin:16px 0}
       <input type="hidden" name="action" value="save_profile">
       <label class="flbl">Name</label>
       <input type="text" name="name" value="{{current_user.name or ''}}">
+      <label class="flbl">Home airport</label>
+      <div style="position:relative;margin-bottom:14px">
+        <div class="ap-wrap">
+          <input type="text" name="home_airport" id="homeAirportInp"
+                 value="{{current_user.home_airport or ''}}"
+                 placeholder="Type city or code e.g. DFW"
+                 class="al-input" autocomplete="off"
+                 oninput="homeApSearch(this)" onfocus="homeApSearch(this)"
+                 onblur="setTimeout(()=>document.getElementById('homeApDrop').style.display='none',200)"
+                 style="width:100%">
+          <div id="homeApDrop" class="ap-drop" style="display:none"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;margin-bottom:0">
+          Pre-fills as the departure airport on all new routes. Always editable per route.
+        </div>
+      </div>
       <label class="flbl">Alert email (leave blank to use login email)</label>
       <input type="email" name="alert_email" value="{{current_user.alert_email or ''}}">
       <label class="flbl" style="margin-bottom:10px">Notification channels</label>
@@ -165,5 +197,297 @@ hr.div{border:none;border-top:1px solid var(--line);margin:16px 0}
 
   <a href="/dashboard" class="back">← Back to dashboard</a>
 </div>
+
+<script>
+const AIRPORTS = [
+  {code:"DFW",name:"Dallas/Fort Worth, TX, US"},
+  {code:"LAX",name:"Los Angeles, CA, US"},
+  {code:"ORD",name:"Chicago O'Hare, IL, US"},
+  {code:"ATL",name:"Atlanta Hartsfield, GA, US"},
+  {code:"JFK",name:"New York Kennedy, NY, US"},
+  {code:"SFO",name:"San Francisco, CA, US"},
+  {code:"MIA",name:"Miami, FL, US"},
+  {code:"DEN",name:"Denver, CO, US"},
+  {code:"SEA",name:"Seattle, WA, US"},
+  {code:"LAS",name:"Las Vegas, NV, US"},
+  {code:"CLT",name:"Charlotte, NC, US"},
+  {code:"PHX",name:"Phoenix, AZ, US"},
+  {code:"IAH",name:"Houston Intercontinental, TX, US"},
+  {code:"HOU",name:"Houston Hobby, TX, US"},
+  {code:"MCO",name:"Orlando, FL, US"},
+  {code:"EWR",name:"Newark, NJ, US"},
+  {code:"MSP",name:"Minneapolis, MN, US"},
+  {code:"BOS",name:"Boston, MA, US"},
+  {code:"DTW",name:"Detroit, MI, US"},
+  {code:"PHL",name:"Philadelphia, PA, US"},
+  {code:"LGA",name:"New York LaGuardia, NY, US"},
+  {code:"FLL",name:"Fort Lauderdale, FL, US"},
+  {code:"BWI",name:"Baltimore, MD, US"},
+  {code:"DCA",name:"Washington Reagan, DC, US"},
+  {code:"IAD",name:"Washington Dulles, DC, US"},
+  {code:"SLC",name:"Salt Lake City, UT, US"},
+  {code:"SAN",name:"San Diego, CA, US"},
+  {code:"TPA",name:"Tampa, FL, US"},
+  {code:"PDX",name:"Portland, OR, US"},
+  {code:"HNL",name:"Honolulu, HI, US"},
+  {code:"DAL",name:"Dallas Love Field, TX, US"},
+  {code:"AUS",name:"Austin, TX, US"},
+  {code:"SAT",name:"San Antonio, TX, US"},
+  {code:"BNA",name:"Nashville, TN, US"},
+  {code:"RDU",name:"Raleigh-Durham, NC, US"},
+  {code:"STL",name:"St Louis, MO, US"},
+  {code:"MCI",name:"Kansas City, MO, US"},
+  {code:"MSY",name:"New Orleans, LA, US"},
+  {code:"CLE",name:"Cleveland, OH, US"},
+  {code:"PIT",name:"Pittsburgh, PA, US"},
+  {code:"CMH",name:"Columbus, OH, US"},
+  {code:"IND",name:"Indianapolis, IN, US"},
+  {code:"MKE",name:"Milwaukee, WI, US"},
+  {code:"OMA",name:"Omaha, NE, US"},
+  {code:"OKC",name:"Oklahoma City, OK, US"},
+  {code:"TUL",name:"Tulsa, OK, US"},
+  {code:"ABQ",name:"Albuquerque, NM, US"},
+  {code:"ELP",name:"El Paso, TX, US"},
+  {code:"LGB",name:"Long Beach, CA, US"},
+  {code:"BUR",name:"Burbank, CA, US"},
+  {code:"SJC",name:"San Jose, CA, US"},
+  {code:"OAK",name:"Oakland, CA, US"},
+  {code:"SNA",name:"Orange County, CA, US"},
+  {code:"SMF",name:"Sacramento, CA, US"},
+  {code:"RSW",name:"Fort Myers, FL, US"},
+  {code:"JAX",name:"Jacksonville, FL, US"},
+  {code:"SRQ",name:"Sarasota, FL, US"},
+  {code:"PBI",name:"West Palm Beach, FL, US"},
+  {code:"MEM",name:"Memphis, TN, US"},
+  {code:"BHM",name:"Birmingham, AL, US"},
+  {code:"GSP",name:"Greenville-Spartanburg, SC, US"},
+  {code:"CHS",name:"Charleston, SC, US"},
+  {code:"SAV",name:"Savannah, GA, US"},
+  {code:"ORF",name:"Norfolk, VA, US"},
+  {code:"RIC",name:"Richmond, VA, US"},
+  {code:"BDL",name:"Hartford, CT, US"},
+  {code:"PVD",name:"Providence, RI, US"},
+  {code:"BUF",name:"Buffalo, NY, US"},
+  {code:"ALB",name:"Albany, NY, US"},
+  {code:"ROC",name:"Rochester, NY, US"},
+  {code:"SYR",name:"Syracuse, NY, US"},
+  {code:"YYZ",name:"Toronto, ON, CA"},
+  {code:"YUL",name:"Montreal, QC, CA"},
+  {code:"YVR",name:"Vancouver, BC, CA"},
+  {code:"YYC",name:"Calgary, AB, CA"},
+  {code:"YEG",name:"Edmonton, AB, CA"},
+  {code:"YOW",name:"Ottawa, ON, CA"},
+  {code:"MEX",name:"Mexico City, MX"},
+  {code:"CUN",name:"Cancun, MX"},
+  {code:"GDL",name:"Guadalajara, MX"},
+  {code:"LHR",name:"London Heathrow, UK, GB"},
+  {code:"LGW",name:"London Gatwick, UK, GB"},
+  {code:"STN",name:"London Stansted, UK, GB"},
+  {code:"MAN",name:"Manchester, UK, GB"},
+  {code:"EDI",name:"Edinburgh, UK, GB"},
+  {code:"GLA",name:"Glasgow, UK, GB"},
+  {code:"BHX",name:"Birmingham, UK, GB"},
+  {code:"CDG",name:"Paris Charles de Gaulle, FR"},
+  {code:"ORY",name:"Paris Orly, FR"},
+  {code:"NCE",name:"Nice, FR"},
+  {code:"LYS",name:"Lyon, FR"},
+  {code:"MRS",name:"Marseille, FR"},
+  {code:"FRA",name:"Frankfurt, DE"},
+  {code:"MUC",name:"Munich, DE"},
+  {code:"BER",name:"Berlin, DE"},
+  {code:"DUS",name:"Düsseldorf, DE"},
+  {code:"HAM",name:"Hamburg, DE"},
+  {code:"STR",name:"Stuttgart, DE"},
+  {code:"CGN",name:"Cologne, DE"},
+  {code:"NUE",name:"Nuremberg, DE"},
+  {code:"TXL",name:"Berlin Tegel, DE"},
+  {code:"AMS",name:"Amsterdam, NL"},
+  {code:"RTM",name:"Rotterdam, NL"},
+  {code:"MAD",name:"Madrid, ES"},
+  {code:"BCN",name:"Barcelona, ES"},
+  {code:"AGP",name:"Malaga, ES"},
+  {code:"PMI",name:"Palma Mallorca, ES"},
+  {code:"VLC",name:"Valencia, ES"},
+  {code:"SVQ",name:"Seville, ES"},
+  {code:"FCO",name:"Rome Fiumicino, IT"},
+  {code:"LIN",name:"Milan Linate, IT"},
+  {code:"MXP",name:"Milan Malpensa, IT"},
+  {code:"VCE",name:"Venice, IT"},
+  {code:"NAP",name:"Naples, IT"},
+  {code:"ZRH",name:"Zurich, CH"},
+  {code:"GVA",name:"Geneva, CH"},
+  {code:"BSL",name:"Basel, CH"},
+  {code:"VIE",name:"Vienna, AT"},
+  {code:"SZG",name:"Salzburg, AT"},
+  {code:"BRU",name:"Brussels, BE"},
+  {code:"LGG",name:"Liege, BE"},
+  {code:"CPH",name:"Copenhagen, DK"},
+  {code:"ARN",name:"Stockholm, SE"},
+  {code:"GOT",name:"Gothenburg, SE"},
+  {code:"OSL",name:"Oslo, NO"},
+  {code:"HEL",name:"Helsinki, FI"},
+  {code:"LIS",name:"Lisbon, PT"},
+  {code:"OPO",name:"Porto, PT"},
+  {code:"FAO",name:"Faro, PT"},
+  {code:"ATH",name:"Athens, GR"},
+  {code:"SKG",name:"Thessaloniki, GR"},
+  {code:"HER",name:"Heraklion, GR"},
+  {code:"PRG",name:"Prague, CZ"},
+  {code:"BUD",name:"Budapest, HU"},
+  {code:"WAW",name:"Warsaw, PL"},
+  {code:"KRK",name:"Krakow, PL"},
+  {code:"BEG",name:"Belgrade, RS"},
+  {code:"ZAG",name:"Zagreb, HR"},
+  {code:"OTP",name:"Bucharest, RO"},
+  {code:"SOF",name:"Sofia, BG"},
+  {code:"LJU",name:"Ljubljana, SI"},
+  {code:"DUB",name:"Dublin, IE"},
+  {code:"SNN",name:"Shannon, IE"},
+  {code:"KEF",name:"Reykjavik, IS"},
+  {code:"RIX",name:"Riga, LV"},
+  {code:"TLL",name:"Tallinn, EE"},
+  {code:"VNO",name:"Vilnius, LT"},
+  {code:"LED",name:"St Petersburg, RU"},
+  {code:"SVO",name:"Moscow Sheremetyevo, RU"},
+  {code:"DME",name:"Moscow Domodedovo, RU"},
+  {code:"IST",name:"Istanbul, TR"},
+  {code:"SAW",name:"Istanbul Sabiha, TR"},
+  {code:"ESB",name:"Ankara, TR"},
+  {code:"AYT",name:"Antalya, TR"},
+  {code:"DXB",name:"Dubai, AE"},
+  {code:"AUH",name:"Abu Dhabi, AE"},
+  {code:"SHJ",name:"Sharjah, AE"},
+  {code:"DOH",name:"Doha, QA"},
+  {code:"BAH",name:"Bahrain, BH"},
+  {code:"KWI",name:"Kuwait, KW"},
+  {code:"AMM",name:"Amman, JO"},
+  {code:"BEY",name:"Beirut, LB"},
+  {code:"CAI",name:"Cairo, EG"},
+  {code:"TLV",name:"Tel Aviv, IL"},
+  {code:"RUH",name:"Riyadh, SA"},
+  {code:"JED",name:"Jeddah, SA"},
+  {code:"MCT",name:"Muscat, OM"},
+  {code:"NBO",name:"Nairobi, KE"},
+  {code:"ADD",name:"Addis Ababa, ET"},
+  {code:"JNB",name:"Johannesburg, ZA"},
+  {code:"CPT",name:"Cape Town, ZA"},
+  {code:"LOS",name:"Lagos, NG"},
+  {code:"ACC",name:"Accra, GH"},
+  {code:"CMN",name:"Casablanca, MA"},
+  {code:"ALG",name:"Algiers, DZ"},
+  {code:"TUN",name:"Tunis, TN"},
+  {code:"NRT",name:"Tokyo Narita, JP"},
+  {code:"HND",name:"Tokyo Haneda, JP"},
+  {code:"KIX",name:"Osaka Kansai, JP"},
+  {code:"ITM",name:"Osaka Itami, JP"},
+  {code:"NGO",name:"Nagoya, JP"},
+  {code:"CTS",name:"Sapporo, JP"},
+  {code:"FUK",name:"Fukuoka, JP"},
+  {code:"ICN",name:"Seoul Incheon, KR"},
+  {code:"GMP",name:"Seoul Gimpo, KR"},
+  {code:"PUS",name:"Busan, KR"},
+  {code:"PEK",name:"Beijing Capital, CN"},
+  {code:"PKX",name:"Beijing Daxing, CN"},
+  {code:"PVG",name:"Shanghai Pudong, CN"},
+  {code:"SHA",name:"Shanghai Hongqiao, CN"},
+  {code:"CAN",name:"Guangzhou, CN"},
+  {code:"SZX",name:"Shenzhen, CN"},
+  {code:"CTU",name:"Chengdu, CN"},
+  {code:"XIY",name:"Xi'an, CN"},
+  {code:"WUH",name:"Wuhan, CN"},
+  {code:"HGH",name:"Hangzhou, CN"},
+  {code:"HKG",name:"Hong Kong, HK"},
+  {code:"MFM",name:"Macau, MO"},
+  {code:"TPE",name:"Taipei, TW"},
+  {code:"KHH",name:"Kaohsiung, TW"},
+  {code:"SIN",name:"Singapore, SG"},
+  {code:"KUL",name:"Kuala Lumpur, MY"},
+  {code:"BKK",name:"Bangkok Suvarnabhumi, TH"},
+  {code:"DMK",name:"Bangkok Don Mueang, TH"},
+  {code:"HKT",name:"Phuket, TH"},
+  {code:"CNX",name:"Chiang Mai, TH"},
+  {code:"CGK",name:"Jakarta, ID"},
+  {code:"DPS",name:"Bali Denpasar, ID"},
+  {code:"SUB",name:"Surabaya, ID"},
+  {code:"MNL",name:"Manila, PH"},
+  {code:"CEB",name:"Cebu, PH"},
+  {code:"SGN",name:"Ho Chi Minh City, VN"},
+  {code:"HAN",name:"Hanoi, VN"},
+  {code:"DAD",name:"Da Nang, VN"},
+  {code:"RGN",name:"Yangon, MM"},
+  {code:"PNH",name:"Phnom Penh, KH"},
+  {code:"VTE",name:"Vientiane, LA"},
+  {code:"DEL",name:"Delhi, IN"},
+  {code:"BOM",name:"Mumbai, IN"},
+  {code:"MAA",name:"Chennai, IN"},
+  {code:"BLR",name:"Bangalore, IN"},
+  {code:"CCU",name:"Kolkata, IN"},
+  {code:"HYD",name:"Hyderabad, IN"},
+  {code:"COK",name:"Kochi, IN"},
+  {code:"GOI",name:"Goa, IN"},
+  {code:"AMD",name:"Ahmedabad, IN"},
+  {code:"KHI",name:"Karachi, PK"},
+  {code:"LHE",name:"Lahore, PK"},
+  {code:"ISB",name:"Islamabad, PK"},
+  {code:"DAC",name:"Dhaka, BD"},
+  {code:"CMB",name:"Colombo, LK"},
+  {code:"KTM",name:"Kathmandu, NP"},
+  {code:"SYD",name:"Sydney, NSW, AU"},
+  {code:"MEL",name:"Melbourne, VIC, AU"},
+  {code:"BNE",name:"Brisbane, QLD, AU"},
+  {code:"PER",name:"Perth, WA, AU"},
+  {code:"ADL",name:"Adelaide, SA, AU"},
+  {code:"CNS",name:"Cairns, QLD, AU"},
+  {code:"AKL",name:"Auckland, NZ"},
+  {code:"CHC",name:"Christchurch, NZ"},
+  {code:"WLG",name:"Wellington, NZ"},
+  {code:"GRU",name:"São Paulo Guarulhos, SP, BR"},
+  {code:"CGH",name:"São Paulo Congonhas, SP, BR"},
+  {code:"GIG",name:"Rio de Janeiro Galeão, RJ, BR"},
+  {code:"BSB",name:"Brasília, DF, BR"},
+  {code:"FOR",name:"Fortaleza, CE, BR"},
+  {code:"SSA",name:"Salvador, BA, BR"},
+  {code:"REC",name:"Recife, PE, BR"},
+  {code:"EZE",name:"Buenos Aires Ezeiza, AR"},
+  {code:"AEP",name:"Buenos Aires Aeroparque, AR"},
+  {code:"SCL",name:"Santiago, CL"},
+  {code:"LIM",name:"Lima, PE"},
+  {code:"BOG",name:"Bogotá, CO"},
+  {code:"MDE",name:"Medellín, CO"},
+  {code:"UIO",name:"Quito, EC"},
+  {code:"GYE",name:"Guayaquil, EC"},
+  {code:"CCS",name:"Caracas, VE"},
+  {code:"MVD",name:"Montevideo, UY"},
+  {code:"ASU",name:"Asuncion, PY"},
+  {code:"LPB",name:"La Paz, BO"},
+  {code:"GEO",name:"Georgetown, GY"},
+];
+
+function homeApSearch(inp){
+  const q=(inp.value||'').trim().toUpperCase();
+  const drop=document.getElementById('homeApDrop');
+  if(!drop)return;
+  if(q.length<1){drop.style.display='none';return;}
+  const matches=AIRPORTS.filter(a=>
+    a.code.startsWith(q)||a.name.toUpperCase().includes(q)
+  ).slice(0,8);
+  if(!matches.length){drop.style.display='none';return;}
+  drop.innerHTML=matches.map(a=>
+    `<div class="ap-item" onmousedown="pickHomeAp('${a.code}','${a.name}')">
+      <span class="ap-code">${a.code}</span>
+      <span class="ap-name">${a.name}</span>
+    </div>`
+  ).join('');
+  drop.style.display='block';
+}
+
+function pickHomeAp(code, name){
+  const inp=document.getElementById('homeAirportInp');
+  if(inp)inp.value=code;
+  const drop=document.getElementById('homeApDrop');
+  if(drop)drop.style.display='none';
+}
+</script>
+
 </body>
 </html>
