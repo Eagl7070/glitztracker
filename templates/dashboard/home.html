@@ -239,9 +239,6 @@ textarea{resize:vertical;min-height:60px}
       <span id="lastChecked">Loading…</span>
     </div>
     <span class="plan-chip plan-{{current_user.plan}}">{{current_user.plan|upper}}</span>
-    {% if current_user.plan != "elite" %}
-    <a href="/billing/upgrade"><button class="btn sm">Upgrade</button></a>
-    {% else %}
     <a href="/dashboard/fifth-freedom"><button class="btn sm">✈ Fifth Freedom</button></a>
     <a href="/dashboard/calendar"><button class="btn sm">📅 Calendar</button></a>
     {% if current_user.plan != "elite" %}
