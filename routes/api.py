@@ -296,12 +296,124 @@ def calendar_award():
 @api_bp.route("/run/cash", methods=["POST"])
 @login_required
 def run_cash_now():
-    """Trigger an immediate background check for cash routes (stub — checker runs on its own loop)."""
-    return jsonify({"status": "check queued"})
+    """Trigger an immediate cash fare check for the current user in a background thread."""
+    import threading, os, sys, json, re, requests as req
+    from datetime import datetime, timezone
+
+    def do_check():
+        try:
+            SERPAPI_KEY = current_app.config.get("SERPAPI_KEY","")
+            if not SERPAPI_KEY:
+                return
+            CABIN_CODES = {"economy":"1","premium_economy":"2","business":"3","first":"4"}
+            ALLIANCE_CODES = {
+                "oneworld":     {"AA","BA","IB","AY","QR","JL","QF","CX","MH","S7","UL","RJ","AT","AS","FJ"},
+                "skyteam":      {"DL","AF","KL","AM","MU","KE","SU","AZ","CZ","GA","KQ","ME","OK","RO","SV","UX","VN","VS"},
+                "staralliance": {"UA","LH","NH","AC","OS","LO","AV","MS","SN","BR","CA","CM","ET","LX","OU","OZ","SA","SK","TG","TP","TK"},
+                "any": set(),
+            }
+            with current_app.app_context():
+                from .models import db, CashRoute, PriceHistory
+                routes = CashRoute.query.filter_by(user_id=current_user.id, active=True).all()
+                now = datetime.now(timezone.utc)
+                for route in routes:
+                    slices = json.loads(route.slices_json)
+                    airlines = json.loads(route.airlines_json or "[]")
+                    allowed = set(airlines) if airlines else ALLIANCE_CODES.get(route.alliance or "oneworld", set())
+                    cabin = CABIN_CODES.get(route.cabin or "business","3")
+                    params = {"engine":"google_flights","api_key":SERPAPI_KEY,"type":"3",
+                              "multi_city_json":json.dumps([{"departure_id":s["departure_id"],
+                                  "arrival_id":s["arrival_id"],"date":s["date"]} for s in slices]),
+                              "travel_class":cabin,"currency":"USD","hl":"en","gl":"us","deep_search":"true"}
+                    try:
+                        r = req.get("https://serpapi.com/search.json", params=params, timeout=90)
+                        r.raise_for_status()
+                        data = r.json()
+                        opts = (data.get("best_flights") or []) + (data.get("other_flights") or [])
+                        def passes(opt):
+                            if not allowed: return True
+                            return all(re.match(r"[A-Z0-9]{2}", l.get("flight_number","")[:2]) and
+                                      (l.get("flight_number","")[:2] in allowed) for l in opt.get("flights",[]))
+                        filtered = [o for o in opts if passes(o)]
+                        if filtered:
+                            best = min(filtered, key=lambda o: o.get("price",1e9))
+                            price = best.get("price")
+                            detail = " > ".join(
+                                f"{l.get('departure_airport',{}).get('id','?')}-{l.get('arrival_airport',{}).get('id','?')}({l.get('flight_number','?')})"
+                                for l in best.get("flights",[]))
+                            route.last_price = price
+                            route.last_route = detail
+                            route.last_checked = now
+                            ph = PriceHistory(user_id=current_user.id, route_id=route.id,
+                                route_type="cash", price=price, route_detail=detail,
+                                cabin=route.cabin, alliance=route.alliance)
+                            db.session.add(ph)
+                            db.session.commit()
+                    except Exception as e:
+                        current_app.logger.error("Manual check error route %d: %s", route.id, e)
+        except Exception as e:
+            current_app.logger.error("Manual check thread error: %s", e)
+
+    thread = threading.Thread(target=do_check, daemon=True)
+    thread.start()
+    return jsonify({"status": "check started", "message": "Results will update in ~30 seconds"})
 
 
 @api_bp.route("/run/award", methods=["POST"])
 @login_required
 def run_award_now():
-    """Trigger an immediate background check for award routes."""
-    return jsonify({"status": "check queued"})
+    """Trigger an immediate award check for current user."""
+    import threading, requests as req
+    from datetime import datetime, timezone
+
+    def do_check():
+        try:
+            SEATS_KEY = current_app.config.get("SEATS_AERO_API_KEY","")
+            if not SEATS_KEY:
+                return
+            CABIN_PREFIX = {"economy":"Y","premium_economy":"W","business":"J","first":"F"}
+            with current_app.app_context():
+                from .models import db, AwardRoute, PriceHistory
+                routes = AwardRoute.query.filter_by(user_id=current_user.id, active=True).all()
+                now = datetime.now(timezone.utc)
+                for route in routes:
+                    prefix = CABIN_PREFIX.get(route.cabin or "business","J")
+                    progs = json.loads(route.programs_json or "[]")
+                    if not progs:
+                        progs = ["american","alaska","qantas","delta","united","lufthansa",
+                                 "flying_blue","aeroplan","british","cathay","finnair","iberia","japan"]
+                    params = {"origin_airport":route.origin,"destination_airport":route.destination,
+                              "cabin":route.cabin or "business","start_date":route.date,
+                              "end_date":route.date,"take":50,"order_by":"lowest_mileage",
+                              "sources":",".join(progs)}
+                    try:
+                        r = req.get("https://seats.aero/partnerapi/search",
+                            params=params, headers={"Partner-Authorization":SEATS_KEY,"accept":"application/json"},
+                            timeout=60)
+                        r.raise_for_status()
+                        data = r.json()
+                        for item in data.get("data",[]):
+                            if not item.get(f"{prefix}Available"): continue
+                            try: miles = int(str(item.get(f"{prefix}MileageCost","0")).replace(",",""))
+                            except: miles = 0
+                            if route.max_miles and miles and miles > route.max_miles: continue
+                            try: taxes = float(str(item.get(f"{prefix}Taxes","0")).replace(",",""))
+                            except: taxes = 0.0
+                            route.last_miles = miles
+                            route.last_taxes = taxes or None
+                            route.last_checked = now
+                            ph = PriceHistory(user_id=current_user.id, route_id=route.id,
+                                route_type="award", miles=miles, taxes=taxes or None,
+                                cabin=route.cabin, alliance=route.alliance,
+                                program=item.get("Source",""))
+                            db.session.add(ph)
+                            db.session.commit()
+                            break  # just take the first/best
+                    except Exception as e:
+                        current_app.logger.error("Manual award check error route %d: %s", route.id, e)
+        except Exception as e:
+            current_app.logger.error("Manual award check thread error: %s", e)
+
+    thread = threading.Thread(target=do_check, daemon=True)
+    thread.start()
+    return jsonify({"status": "check started"})
