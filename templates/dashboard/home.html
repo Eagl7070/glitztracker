@@ -91,7 +91,11 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;
 .pass-btm{padding:12px 18px 16px;background:rgba(8,12,24,.45);backdrop-filter:blur(6px)}
 .pass-plbl{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
 .pass-price{font-family:var(--serif);font-size:44px;font-weight:700;line-height:1;margin-bottom:6px;transition:color .3s}
-.pp-above{color:var(--ink)}.pp-close{color:var(--gold)}.pp-at{color:#7fe8a8}.pp-empty{color:var(--muted);font-size:24px;padding-top:6px}
+.pp-above{color:var(--ink)}.pp-close{color:var(--gold)}
+.pp-at{color:#22c55e;text-shadow:0 0 20px rgba(34,197,94,.4)}
+.pp-empty{color:var(--muted);font-size:24px;padding-top:6px}
+.sc-at{background:rgba(34,197,94,.15);color:#22c55e;animation:glow-green 2s infinite}
+@keyframes glow-green{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.3)}50%{box-shadow:0 0 8px 2px rgba(34,197,94,.15)}}
 .pass-meta{display:flex;align-items:center;justify-content:space-between;gap:6px}
 .pass-detail{font-family:var(--mono);font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
 .status-chip{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap}
@@ -143,7 +147,9 @@ select.status-sel:focus{outline:none;border-color:var(--gold)}
 .swu-c-waitlisted{color:var(--yellow)}.swu-c-cleared{color:#7fe8a8}
 .swu-c-expired{color:var(--muted)}.swu-c-denied{color:var(--red)}
 .award-space-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
-.dot-on{background:var(--green)}.dot-off{background:var(--muted)}
+.dot-on{background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.5);animation:pulse-green 1.5s infinite}
+.dot-off{background:var(--muted)}
+@keyframes pulse-green{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}60%{box-shadow:0 0 0 6px rgba(34,197,94,0)}}
 
 /* ── Forms ── */
 .form-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px}
@@ -212,7 +218,8 @@ textarea{resize:vertical;min-height:60px}
 .pass.award .pass-btm{ background:rgba(4,20,24,.5); }
 .pass-miles{ font-family:var(--serif);font-size:40px;font-weight:700;line-height:1;margin-bottom:6px;color:var(--teal); }
 .pass-miles.above{ color:var(--ink); }
-.pass-miles.at{ color:#7fe8a8; }
+.pass-miles.close{ color:var(--teal); }
+.pass-miles.at{ color:#22c55e;text-shadow:0 0 20px rgba(34,197,94,.4); }
 .pass-miles.empty{ color:var(--muted);font-size:24px;padding-top:6px; }
 .pass-prog{ font-size:11px;color:var(--teal);font-family:var(--mono); }
 .target-inline{ display:flex;gap:6px;align-items:center;margin-top:10px;
@@ -235,13 +242,32 @@ textarea{resize:vertical;min-height:60px}
 .pass-swu-status{ font-size:13px;font-weight:700;line-height:1;margin-bottom:6px; }
 .swu-c-pending{ color:var(--muted); }
 .swu-c-requested{ color:#7ab8e8; }
-.swu-c-waitlisted{ color:var(--yellow,#eab308); }
-.swu-c-cleared{ color:#7fe8a8; }
+.swu-c-waitlisted{ color:#eab308; }
+.swu-c-cleared{ color:#22c55e;text-shadow:0 0 20px rgba(34,197,94,.5);font-size:28px; }
 .swu-c-expired{ color:var(--muted); }
 .swu-c-denied{ color:var(--red); }
 .swu-monitor-dot{ width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle; }
 .dot-active{ background:var(--green,#4caf7a);box-shadow:0 0 6px rgba(76,175,122,.5); }
 .dot-inactive{ background:var(--muted); }
+
+
+/* Stat pills */
+.stat-pill{
+  display:flex;align-items:center;gap:12px;
+  background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid rgba(255,255,255,.08);border-radius:12px;
+  padding:12px 18px;min-width:160px;max-width:220px;flex:1;
+  border-left:3px solid var(--pill-color,#f5c842);
+}
+.pill-icon{font-size:22px;flex-shrink:0;width:32px;text-align:center;
+  filter:drop-shadow(0 0 6px var(--pill-color,#f5c842))}
+.pill-body{flex:1}
+.pill-count{font-family:var(--serif);font-size:26px;font-weight:700;
+  color:var(--pill-color,#f5c842);line-height:1}
+.pill-lbl{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);margin-top:2px}
+.pill-sub{font-size:11px;color:var(--muted);text-align:right;align-self:flex-end;
+  white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis}
 
 </style>
 </head>
@@ -278,27 +304,32 @@ textarea{resize:vertical;min-height:60px}
   <div class="passes" id="swuPasses" style="margin-top:-8px"></div>
 
   <!-- Stats -->
-  <div class="stats">
-    <div class="stat">
-      <div class="stat-lbl">Cash routes</div>
-      <div class="stat-val gold" id="sCashCount">0</div>
-      <div class="stat-sub" id="sBestFare">No data yet</div>
+  <div style="display:flex;justify-content:center;gap:14px;margin-bottom:22px;flex-wrap:wrap">
+    <div class="stat-pill" style="--pill-color:#22c55e">
+      <div class="pill-icon">✈</div>
+      <div class="pill-body">
+        <div class="pill-count" id="sCashCount">0</div>
+        <div class="pill-lbl">Cash Routes</div>
+      </div>
+      <div class="pill-sub" id="sBestFare">—</div>
     </div>
-    <div class="stat">
-      <div class="stat-lbl">Award routes</div>
-      <div class="stat-val teal" id="sAwardCount">0</div>
-      <div class="stat-sub" id="sBestMiles">No data yet</div>
+    <div class="stat-pill" style="--pill-color:#3b82f6">
+      <div class="pill-icon">🎟</div>
+      <div class="pill-body">
+        <div class="pill-count" id="sAwardCount">0</div>
+        <div class="pill-lbl">Award Routes</div>
+      </div>
+      <div class="pill-sub" id="sBestMiles">—</div>
     </div>
-    <div class="stat">
-      <div class="stat-lbl">SWU tracked</div>
-      <div class="stat-val" style="color:#c47af5" id="sSWUCount">0</div>
-      <div class="stat-sub" id="sSWUSub">upgrade requests</div>
+    <div class="stat-pill" style="--pill-color:#ef4444">
+      <div class="pill-icon">⬆</div>
+      <div class="pill-body">
+        <div class="pill-count" id="sSWUCount">0</div>
+        <div class="pill-lbl">SWU Tracked</div>
+      </div>
+      <div class="pill-sub" id="sSWUSub">upgrades</div>
     </div>
-    <div class="stat">
-      <div class="stat-lbl">Best fare found</div>
-      <div class="stat-val gold" id="sBest">—</div>
-      <div class="stat-sub" id="sBestSub">Run a check first</div>
-    </div>
+
   </div>
 
   <div class="grid">
@@ -306,15 +337,7 @@ textarea{resize:vertical;min-height:60px}
     <!-- Single column layout -->
     <div>
 
-      <!-- Alert target -->
-      <!-- Target -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:12px">Alert target</div>
-        <div class="form-row">
-          <div><label class="flbl">Alert when fare drops to (USD)</label><input type="number" id="targetInput" placeholder="3000" value="{{current_user.global_target_price or 3000}}"></div>
-          <div style="flex:0"><label class="flbl">&nbsp;</label><button class="btn gold" onclick="saveTarget()">Save</button></div>
-        </div>
-      </div>
+
 
       <!-- Cash itineraries (moved to left, top) -->
       <div class="card">
@@ -370,11 +393,12 @@ textarea{resize:vertical;min-height:60px}
       <!-- SWU + Award (already combined) -->
     <!-- Award routes moved here, below SWU -->
       <!-- Award routes -->
+      <!-- Award routes -->
       <div class="card">
         <div class="card-hdr">
           <div class="card-title">Award routes</div>
           {% if current_user.can_award_track %}
-          <button class="btn sm" onclick="showAwardForm()">+ Add</button>
+          <button class="btn sm" id="showAwardBtn" onclick="showAwardForm()">+ Add</button>
           {% endif %}
         </div>
         {% if current_user.can_award_track %}
@@ -418,8 +442,6 @@ textarea{resize:vertical;min-height:60px}
               </div>
             </div>
           </div>
-
-          <!-- Trip type -->
           <div style="margin-bottom:10px">
             <label class="flbl">Trip type</label>
             <div class="toggle-group" id="tripGrp">
@@ -428,8 +450,6 @@ textarea{resize:vertical;min-height:60px}
               <button class="tgl" data-v="multi_city" onclick="pickT(this)">Multi-city</button>
             </div>
           </div>
-
-          <!-- Cabin -->
           <div style="margin-bottom:10px">
             <label class="flbl">Cabin</label>
             <div class="toggle-group" id="aCabGrp">
@@ -439,8 +459,6 @@ textarea{resize:vertical;min-height:60px}
               <button class="tgl" data-v="first" onclick="pickAC(this)">First</button>
             </div>
           </div>
-
-          <!-- Miles target -->
           <div class="form-row" style="margin-bottom:10px">
             <div>
               <label class="flbl">Alert me when miles drop below</label>
@@ -452,115 +470,156 @@ textarea{resize:vertical;min-height:60px}
               </label>
             </div>
           </div>
-
-          <!-- Program selector -->
           <div style="margin-bottom:14px">
-            <label class="flbl">Search these programs
-              <span style="color:var(--muted);font-weight:400;letter-spacing:0;text-transform:none;font-size:11px"> — select at least one</span>
-            </label>
+            <label class="flbl">Search these programs <span style="color:var(--muted);font-weight:400;letter-spacing:0;text-transform:none;font-size:11px">— select at least one</span></label>
             <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
               <button class="btn sm" onclick="selectAllPrograms()" type="button">Select all</button>
               <button class="btn sm" onclick="clearAllPrograms()" type="button">Clear all</button>
             </div>
-            
-          <div style="margin-bottom:6px">
-            <div style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Oneworld</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px">
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="american" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> American AAdvantage
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="alaska" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Alaska Mileage Plan
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="qantas" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Qantas Points
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="british" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> British Avios
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="cathay" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Cathay Asia Miles
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="finnair" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Finnair Plus
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="iberia" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Iberia Plus
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="japan" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Japan Airlines Mileage Bank
-              </label>
+            <div style="margin-bottom:6px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Oneworld</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="american" style="width:14px;height:14px;accent-color:var(--teal)"> American AAdvantage</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="alaska" style="width:14px;height:14px;accent-color:var(--teal)"> Alaska Mileage Plan</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="qantas" style="width:14px;height:14px;accent-color:var(--teal)"> Qantas Points</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="british" style="width:14px;height:14px;accent-color:var(--teal)"> British Avios</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="cathay" style="width:14px;height:14px;accent-color:var(--teal)"> Cathay Asia Miles</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="finnair" style="width:14px;height:14px;accent-color:var(--teal)"> Finnair Plus</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="iberia" style="width:14px;height:14px;accent-color:var(--teal)"> Iberia Plus</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="japan" style="width:14px;height:14px;accent-color:var(--teal)"> JAL Mileage Bank</label>
+              </div>
+            </div>
+            <div style="margin-bottom:6px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">SkyTeam</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="delta" style="width:14px;height:14px;accent-color:var(--teal)"> Delta SkyMiles</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="flying_blue" style="width:14px;height:14px;accent-color:var(--teal)"> Air France/KLM Flying Blue</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="korean" style="width:14px;height:14px;accent-color:var(--teal)"> Korean Air SKYPASS</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="aeromexico" style="width:14px;height:14px;accent-color:var(--teal)"> Aeromexico Club Premier</label>
+              </div>
+            </div>
+            <div style="margin-bottom:6px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Star Alliance</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="united" style="width:14px;height:14px;accent-color:var(--teal)"> United MileagePlus</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="lufthansa" style="width:14px;height:14px;accent-color:var(--teal)"> Lufthansa Miles & More</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="aeroplan" style="width:14px;height:14px;accent-color:var(--teal)"> Air Canada Aeroplan</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="ana" style="width:14px;height:14px;accent-color:var(--teal)"> ANA Mileage Club</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="swiss" style="width:14px;height:14px;accent-color:var(--teal)"> Swiss Miles & More</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="avianca" style="width:14px;height:14px;accent-color:var(--teal)"> Avianca LifeMiles</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="turkish" style="width:14px;height:14px;accent-color:var(--teal)"> Turkish Miles&Smiles</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px"><input type="checkbox" class="prog-check" value="singapore" style="width:14px;height:14px;accent-color:var(--teal)"> Singapore KrisFlyer</label>
+              </div>
             </div>
           </div>
-          <div style="margin-bottom:6px">
-            <div style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">SkyTeam</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px">
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="delta" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Delta SkyMiles
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="flying_blue" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Air France/KLM Flying Blue
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="korean" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Korean Air SKYPASS
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="aeromexico" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Aeromexico Club Premier
-              </label>
-            </div>
-          </div>
-          <div style="margin-bottom:6px">
-            <div style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Star Alliance</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px">
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="united" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> United MileagePlus
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="lufthansa" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Lufthansa Miles & More
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="aeroplan" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Air Canada Aeroplan
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="ana" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> ANA Mileage Club
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="swiss" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Swiss Miles & More
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="avianca" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Avianca LifeMiles
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="turkish" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Turkish Miles&Smiles
-              </label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink2);cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px">
-                <input type="checkbox" class="prog-check" value="singapore" style="width:14px;height:14px;accent-color:var(--teal);cursor:pointer"> Singapore KrisFlyer
-              </label>
-            </div>
-          </div>
-          </div>
-
           <div style="display:flex;gap:8px">
             <button class="btn gold" onclick="submitAward()">Add route</button>
             <button class="btn" onclick="hideAwardForm()">Cancel</button>
           </div>
         </div>
+        {% else %}
+        <div class="upsell">
+          <p>Award space tracking searches <strong>20+ programs</strong> simultaneously. Pro & Elite only.</p>
+          <a href="/billing/upgrade"><button class="btn gold">Upgrade to unlock →</button></a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- SWU Upgrade Log -->
+      {% if current_user.can_swu_track %}
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">SWU upgrade log</div>
+          <button class="btn sm" id="showSWUBtn" onclick="document.getElementById('swuForm').style.display='block';this.style.display='none'">+ Log flight</button>
+        </div>
+        {% if swu_logs %}
+        <table class="swu-table">
+          <thead><tr><th>Flight</th><th>Cabin</th><th>Status</th><th>Award space</th><th>Notes</th><th></th></tr></thead>
+          <tbody>
+          {% for swu in swu_logs %}
+          <tr>
+            <td><span style="font-family:var(--mono);font-size:12px">{{swu.flight_label}}</span></td>
+            <td><span class="badge b-bus">{{cabin_labels.get(swu.cabin_requested,"Biz")}}</span></td>
+            <td>
+              <form method="POST" action="/dashboard/swu/{{swu.id}}/update" style="display:inline">
+                <select class="status-sel swu-c-{{swu.swu_status}}" name="status" onchange="this.form.submit()">
+                  {% for s in swu_statuses %}<option value="{{s}}" {{"selected" if swu.swu_status==s}}>{{s|title}}</option>{% endfor %}
+                </select>
+              </form>
+            </td>
+            <td>
+              {% if swu.monitor_award_space %}
+                <span class="award-space-dot {{"dot-on" if swu.last_space_available else "dot-off"}}"></span>
+                {{swu.last_miles|string + " mi" if swu.last_miles else ("Open!" if swu.last_space_available else "Monitoring")}}
+              {% else %}—{% endif %}
+            </td>
+            <td style="color:var(--muted);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{swu.notes or "—"}}</td>
+            <td>
+              <form method="POST" action="/dashboard/swu/{{swu.id}}/delete">
+                <button class="btn ghost" type="submit">×</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p style="color:var(--muted);font-size:13px;margin-bottom:12px">No upgrade requests logged yet.</p>
+        {% endif %}
+        <div id="swuForm" style="display:none;margin-top:16px">
+          <hr class="div">
+          <form method="POST" action="/dashboard/swu/add">
+            <div class="form-row">
+              <div><label class="flbl">Airline</label><input type="text" name="airline" placeholder="AA" maxlength="3" required></div>
+              <div><label class="flbl">Flight #</label><input type="text" name="flight_number" placeholder="70" maxlength="8" required></div>
+              <div><label class="flbl">From</label><input type="text" name="origin" placeholder="DFW" maxlength="4" required></div>
+              <div><label class="flbl">To</label><input type="text" name="destination" placeholder="LHR" maxlength="4" required></div>
+              <div><label class="flbl">Date</label><input type="date" name="flight_date" required></div>
+            </div>
+            <div class="form-row">
+              <div>
+                <label class="flbl">Cabin requested</label>
+                <select name="cabin_requested">
+                  <option value="economy">Economy</option>
+                  <option value="premium_economy">Prem Economy</option>
+                  <option value="business" selected>Business</option>
+                  <option value="first">First</option>
+                </select>
+              </div>
+              <div style="display:flex;align-items:flex-end;padding-bottom:2px">
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2);cursor:pointer">
+                  <input type="checkbox" name="monitor" checked style="width:auto;accent-color:var(--gold)">
+                  Monitor award space
+                </label>
+              </div>
+            </div>
+            <div style="margin-bottom:12px">
+              <label class="flbl">Notes</label>
+              <textarea name="notes" placeholder="Called elite line, agent said 3 ahead on waitlist..."></textarea>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn gold" type="submit">Log flight</button>
+              <button class="btn" type="button" onclick="this.closest('#swuForm').style.display='none';document.getElementById('showSWUBtn').style.display=''">Cancel</button>
+            </div>
+          </form>
+        </div>
       </div>
       {% else %}
-      <div class="card" style="margin-top:16px">
+      <div class="card">
         <div class="card-title" style="margin-bottom:12px">SWU upgrade log</div>
         <div class="upsell">
-          <p>Log SWU requests and get an instant <strong>SMS alert</strong> when business award space opens on your flight — the clearest SWU clearance signal available.</p>
+          <p>Log SWU requests and get an instant <strong>SMS alert</strong> when business award space opens — the clearest SWU clearance signal available.</p>
           <a href="/billing/upgrade"><button class="btn gold">Upgrade to Elite →</button></a>
         </div>
       </div>
       {% endif %}
+
     </div>
 
   </div>
 </div>
 
-<div id="toast"></div>
+<div id="toast"></div></div>
 
 <script>
 const $=s=>document.querySelector(s);
@@ -581,7 +640,7 @@ const num=x=>{const n=parseFloat(x);return isNaN(n)?null:n}
 const fmt=n=>n!=null?"$"+Math.round(n).toLocaleString():"—"
 const fmtMi=n=>n?Math.round(n).toLocaleString()+" mi":"—"
 
-function pcls(p,t){if(!p||!t)return"empty";const r=p/t;return r<=1?"at":r<=1.12?"close":"above"}
+function pcls(p,t){if(!p)return"empty";if(!t)return t===null?"above":"empty";const r=p/t;return r<=1?"at":r<=1.12?"close":"above"}
 function pLabel(c){return{at:"✓ At target",close:"Almost there",above:"Above target",empty:"No data yet"}[c]}
 
 function saveCashTarget(routeId){
@@ -635,7 +694,7 @@ function renderSWUPasses(){
         <div class="pass-airline" style="color:#c47af5">SWU Upgrade Request ✦ ${flightNum}</div>
         <div class="pass-badges">
           <span class="badge" style="color:#c47af5;border-color:rgba(196,122,245,.3)">${cabin}</span>
-          ${hasSpace?'<span class="badge" style="color:#7fe8a8;border-color:rgba(76,175,122,.3);animation:pulse 2s infinite">Award Space Open</span>':''}
+          ${hasSpace?'<span class="badge" style="color:#22c55e;border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.1);animation:glow-green 1.5s infinite">🟢 Award Space Open!</span>':''}
         </div>
         <div class="pass-route">
           <div><div class="pass-iata">${orig||'???'}</div><div class="pass-lbl">origin</div></div>
@@ -671,7 +730,7 @@ function renderAwardPasses(routes,hist){
     const miles=last?num(last.miles):r.last_miles;
     const taxes=last?last.taxes:r.last_taxes;
     const target=r.max_miles;
-    const cls=(!miles)?'empty':(target&&miles<=target)?'at':(target&&miles<=target*1.15)?'close':'above';
+    const cls=(!miles)?'empty':(target&&miles<=target)?'at':(target&&miles<=target*1.1)?'close':(!target&&miles)?'above':'above';
     const taxStr=taxes?` + $${Math.round(taxes)} taxes`:'';
     const prog=last?.program||'';
     const direct=r.only_direct?'Nonstop':'Any routing';
@@ -696,7 +755,7 @@ function renderAwardPasses(routes,hist){
         <div class="pass-miles ${cls}">${miles?miles.toLocaleString()+' mi'+(taxStr):'No data yet'}</div>
         <div class="pass-meta">
           <div class="pass-detail">${prog?prog+' · ':''} ${r.label||r.origin+'→'+r.destination}</div>
-          <div class="status-chip ${cls==='at'?'sc-at':cls==='close'?'sc-close':cls==='empty'?'sc-empty':'sc-above'}">${cls==='at'?'✓ At target':cls==='close'?'Almost there':cls==='empty'?'No data yet':'Above target'}</div>
+          <div class="status-chip ${cls==='at'?'sc-at':cls==='close'?'sc-close':cls==='empty'?'sc-empty':'sc-above'}">${cls==='at'?'✓ Below target!':cls==='close'?'Almost there':cls==='empty'?'No data yet':'Above target'}</div>
         </div>
         <div class="target-inline">
           <label>Alert at</label>
@@ -713,8 +772,7 @@ async function loadAll(){
   [cashRoutes,awardRoutes,history]=await Promise.all([
     jget("/api/cash/routes"),jget("/api/award/routes"),jget("/api/history")
   ]);
-  const t=num($("#targetInput").value)||null;
-  renderPasses(cashRoutes,history,t);
+  renderPasses(cashRoutes,history,null);
   renderStats(cashRoutes,awardRoutes,history);
   renderItinList(cashRoutes);
   renderAwardList(awardRoutes);
@@ -729,13 +787,13 @@ function allyBadge(r){
 }
 function cabBadge(r){const c=r.cabin||"business";return`<span class="badge ${CABIN_CLS[c]||"b-bus"}">${CABIN_L[c]||c}</span>`;}
 
-function renderPasses(routes,hist,target){
+function renderPasses(routes,hist){
   const el=$("#passes");
   if(!routes.length){el.innerHTML="<div style='color:var(--muted);font-size:13px;padding:4px 0'>No itineraries yet — add one in the panel.</div>";return}
   el.innerHTML=routes.map(r=>{
     const myH=hist.filter(h=>h.route_id===r.id&&h.route_type==="cash"&&h.price);
     const last=myH[myH.length-1];const price=last?num(last.price):r.last_price;
-    const cls=pcls(price,target);
+    const cls=pcls(price, r.target_price||null);
     const slices=r.slices||[];const from=slices[0]?.departure_id||"???";const to=slices[slices.length-1]?.arrival_id||"???";
     const detail=last?.route_detail||r.last_route||"";
     return`<div class="pass">
