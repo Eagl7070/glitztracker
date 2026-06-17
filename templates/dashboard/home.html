@@ -245,6 +245,16 @@ textarea{resize:vertical;min-height:60px}
     <!-- Single column layout -->
     <div>
 
+      <!-- Alert target -->
+      <!-- Target -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px">Alert target</div>
+        <div class="form-row">
+          <div><label class="flbl">Alert when fare drops to (USD)</label><input type="number" id="targetInput" placeholder="3000" value="{{current_user.global_target_price or 3000}}"></div>
+          <div style="flex:0"><label class="flbl">&nbsp;</label><button class="btn gold" onclick="saveTarget()">Save</button></div>
+        </div>
+      </div>
+
       <!-- Cash itineraries (moved to left, top) -->
       <div class="card">
         <div class="card-hdr">
@@ -295,16 +305,6 @@ textarea{resize:vertical;min-height:60px}
         {% endif %}
       </div>
 
-
-      <!-- Alert target -->
-      <!-- Target -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:12px">Alert target</div>
-        <div class="form-row">
-          <div><label class="flbl">Alert when fare drops to (USD)</label><input type="number" id="targetInput" placeholder="3000" value="{{current_user.global_target_price or 3000}}"></div>
-          <div style="flex:0"><label class="flbl">&nbsp;</label><button class="btn gold" onclick="saveTarget()">Save</button></div>
-        </div>
-      </div>
 
       <!-- SWU + Award (already combined) -->
     <!-- Award routes moved here, below SWU -->
@@ -722,7 +722,10 @@ async function submitItin(){
   const airlines=selA==="custom"?customAirlines:[];
   const res=await jsend("/api/cash/routes","POST",{label,slices,alliance:selA,airlines,cabin:selC});
   if(res.error){toast("⚠ "+res.error,4000);return}
-  hideItinForm();toast("Itinerary added");loadAll();
+  hideItinForm();
+  toast("Itinerary added — running check now…");
+  loadAll();
+  setTimeout(()=>{jsend("/api/run/cash","POST").then(()=>setTimeout(loadAll,32000));},800);
 }
 async function delItin(id){await jsend("/api/cash/routes/"+id,"DELETE");toast("Removed");loadAll();}
 
@@ -734,7 +737,10 @@ async function submitAward(){
   if(!b.origin||!b.destination||!b.date){toast("Fill in from, to, and date");return}
   const res=await jsend("/api/award/routes","POST",b);
   if(res.error){toast("⚠ "+res.error,4000);return}
-  hideAwardForm();toast("Award route added");loadAll();
+  hideAwardForm();
+  toast("Award route added — running check now…");
+  loadAll();
+  setTimeout(()=>{jsend("/api/run/award","POST").then(()=>setTimeout(loadAll,32000));},800);
 }
 async function delAward(id){await jsend("/api/award/routes/"+id,"DELETE");toast("Removed");loadAll();}
 
