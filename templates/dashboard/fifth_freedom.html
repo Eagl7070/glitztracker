@@ -30,51 +30,58 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;
   color:var(--ink);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block}
 .btn:hover{border-color:var(--gold);color:var(--gold)}
 .btn.gold{background:var(--gold);color:#1a1000;border-color:var(--gold);font-weight:700}
-.btn.gold:hover{background:var(--gold2)}
-.btn.teal{background:var(--teal);color:#001a18;border-color:var(--teal);font-weight:700;font-size:12px;padding:6px 12px}
+.btn.teal{background:rgba(77,217,192,.15);color:var(--teal);border-color:rgba(77,217,192,.3);font-size:12px;padding:6px 12px}
 .btn.sm{padding:6px 13px;font-size:12px}
-
 .shell{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:32px 24px 80px}
 .page-hdr{margin-bottom:36px}
 .page-hdr h1{font-family:var(--serif);font-size:36px;font-weight:700;color:var(--ink);margin-bottom:8px}
 .page-hdr p{font-size:15px;color:var(--ink2);line-height:1.6;max-width:720px}
 .tag{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;
-  padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:14px}
-.tag.fifth{background:rgba(245,200,66,.1);color:var(--gold);border:1px solid rgba(245,200,66,.2)}
+  padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:14px;
+  background:rgba(245,200,66,.1);color:var(--gold);border:1px solid rgba(245,200,66,.2)}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px}
+/* Airline section headers */
+.airline-section{margin-bottom:40px}
+.airline-hdr{display:flex;align-items:center;gap:16px;margin-bottom:20px;
+  padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.1)}
+.airline-hdr h2{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--ink)}
+.airline-hdr .airline-tag{font-size:11px;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;padding:4px 12px;border-radius:20px;
+  background:rgba(245,200,66,.1);color:var(--gold);border:1px solid rgba(245,200,66,.2)}
 
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
 .route-card{background:var(--glass);backdrop-filter:var(--blur);
   border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.card-header{padding:20px 22px 16px}
-.airline-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.airline-name{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.card-header{padding:18px 20px 14px}
+.airline-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.airline-name{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
 .aircraft-badge{font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.06);
   border:1px solid var(--line);border-radius:4px;padding:2px 8px;color:var(--ink2)}
-.route-display{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.iata{font-family:var(--serif);font-size:36px;font-weight:700;color:var(--ink);line-height:1}
-.city{font-size:11px;color:var(--muted);letter-spacing:.5px;margin-top:2px}
-.route-arrow{font-size:20px;color:var(--muted);flex:1;text-align:center}
-.desc{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:14px}
-.badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
-.badge{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:4px;
-  border:1px solid;font-weight:500}
+.route-display{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.iata{font-family:var(--serif);font-size:32px;font-weight:700;color:var(--ink);line-height:1}
+.city{font-size:10px;color:var(--muted);letter-spacing:.5px;margin-top:2px}
+.route-arrow{font-size:18px;color:var(--muted);flex:1;text-align:center}
+.desc{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:12px}
+.badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.badge{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid;font-weight:500}
 .badge.eco{color:#7ae87a;border-color:rgba(122,232,122,.3)}
 .badge.pe{color:#e8d87a;border-color:rgba(232,216,122,.3)}
 .badge.bus{color:var(--gold);border-color:rgba(245,200,66,.3)}
 .badge.fst{color:#f5a8a8;border-color:rgba(245,168,168,.3)}
 .badge.prog{color:var(--teal);border-color:rgba(77,217,192,.3)}
 .badge.warn{color:var(--muted);border-color:var(--line);background:rgba(255,255,255,.04)}
-.card-footer{padding:14px 22px 18px;background:rgba(4,8,16,.4);
+.card-footer{padding:12px 20px 16px;background:rgba(4,8,16,.4);
   display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .freq{font-size:12px;color:var(--muted)}
 .freq strong{color:var(--ink2)}
-.track-btn{background:var(--gold);color:#1a1000;border:none;border-radius:7px;
-  padding:8px 16px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer}
+.track-btns{display:flex;gap:6px;flex-wrap:wrap}
+.track-btn{background:var(--gold);color:#1a1000;border:none;border-radius:6px;
+  padding:7px 13px;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer}
 .track-btn:hover{background:var(--gold2)}
 .track-btn.award{background:var(--teal);color:#001a18}
-
-/* Toast */
+.track-btn.ret{background:rgba(245,200,66,.15);color:var(--gold);
+  border:1px solid rgba(245,200,66,.3)}
+.track-btn.ret:hover{background:var(--gold);color:#1a1000}
 #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
   background:rgba(8,12,24,.94);backdrop-filter:var(--blur);
   border:1px solid var(--gold);color:var(--ink);padding:10px 20px;
@@ -96,310 +103,328 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;
 
 <div class="shell">
   <div class="page-hdr">
-    <div class="tag fifth">✈ Fifth Freedom Routes</div>
+    <div class="tag">✈ Fifth Freedom Routes — Confirmed 2026</div>
     <h1>Hidden gems in the sky</h1>
-    <p>Fifth freedom flights let foreign carriers pick up passengers between two countries neither of which is their home country — often on widebody aircraft at competitive prices. These are the confirmed routes for 2026 worth tracking.</p>
+    <p>Fifth freedom flights let foreign carriers pick up passengers between two countries — often on widebody aircraft at competitive prices. These are the confirmed 2026 routes worth tracking.</p>
   </div>
 
-  <div class="grid">
-
-    <!-- BA Nassau ↔ Grand Cayman -->
-    <div class="route-card">
-      <div class="card-header">
-        <div class="airline-row">
-          <div class="airline-name">British Airways</div>
-          <div class="aircraft-badge">Boeing 777</div>
+  <!-- ── BRITISH AIRWAYS ──────────────────────────────────────────────── -->
+  <div class="airline-section">
+    <div class="airline-hdr">
+      <h2>British Airways</h2>
+      <span class="airline-tag">Oneworld</span>
+    </div>
+    <div class="grid">
+      <div class="route-card">
+        <div class="card-header">
+          <div class="airline-row">
+            <div class="airline-name">British Airways</div>
+            <div class="aircraft-badge">Boeing 777</div>
+          </div>
+          <div class="route-display">
+            <div><div class="iata">NAS</div><div class="city">Nassau, Bahamas</div></div>
+            <div class="route-arrow">⟷</div>
+            <div style="text-align:right"><div class="iata">GCM</div><div class="city">Grand Cayman</div></div>
+          </div>
+          <div class="badges">
+            <span class="badge eco">Economy</span><span class="badge pe">Prem Economy</span>
+            <span class="badge bus">Business</span><span class="badge prog">Avios</span>
+            <span class="badge warn">5x weekly</span>
+          </div>
+          <div class="desc">The only nonstop between Nassau and Grand Cayman. Part of BA's LHR–NAS–GCM service through Oct 2026. Note: GCM-bound legs have limited catering. Strong Avios value on this short sector.</div>
         </div>
-        <div class="route-display">
-          <div><div class="iata">NAS</div><div class="city">Nassau, Bahamas</div></div>
-          <div class="route-arrow">⟷</div>
-          <div style="text-align:right"><div class="iata">GCM</div><div class="city">Grand Cayman</div></div>
-        </div>
-        <div class="badges">
-          <span class="badge eco">Economy</span>
-          <span class="badge pe">Prem Economy</span>
-          <span class="badge bus">Business</span>
-          <span class="badge prog">Avios</span>
-          <span class="badge warn">5x weekly</span>
-        </div>
-        <div class="desc">The only nonstop between Nassau and Grand Cayman. Part of BA's LHR–NAS–GCM service, scheduled through Oct 2026. Note: GCM-bound legs have limited catering (drink + snack only). Book with Avios — strong value on this short sector.</div>
-      </div>
-      <div class="card-footer">
-        <div class="freq">Frequency: <strong>5x weekly</strong> · Sched thru <strong>Oct 2026</strong></div>
-        <div style="display:flex;gap:8px">
-          <button class="track-btn" onclick="trackCash('NAS','GCM','Nassau → Grand Cayman (BA)')">Track cash</button>
-          <button class="track-btn award" onclick="trackAward('NAS','GCM','Nassau → GCM Avios')">Track awards</button>
+        <div class="card-footer">
+          <div class="freq">Frequency: <strong>5x weekly</strong> · Through Oct 2026</div>
+          <div class="track-btns">
+            <button class="track-btn" onclick="trackCash('NAS','GCM','NAS → GCM (BA 777)')">NAS → GCM</button>
+            <button class="track-btn ret" onclick="trackCash('GCM','NAS','GCM → NAS (BA 777)')">GCM → NAS</button>
+            <button class="track-btn award" onclick="trackAward('NAS','GCM','NAS → GCM Avios')">Award</button>
+          </div>
         </div>
       </div>
     </div>
-
-    <!-- Emirates BCN ↔ MEX -->
-    <div class="route-card">
-      <div class="card-header">
-        <div class="airline-row">
-          <div class="airline-name">Emirates</div>
-          <div class="aircraft-badge">Boeing 777-200LR</div>
-        </div>
-        <div class="route-display">
-          <div><div class="iata">BCN</div><div class="city">Barcelona, Spain</div></div>
-          <div class="route-arrow">⟷</div>
-          <div style="text-align:right"><div class="iata">MEX</div><div class="city">Mexico City</div></div>
-        </div>
-        <div class="badges">
-          <span class="badge eco">Economy</span>
-          <span class="badge bus">Business</span>
-          <span class="badge prog">Skywards</span>
-          <span class="badge prog">Aeroplan</span>
-          <span class="badge warn">No First Class</span>
-        </div>
-        <div class="desc">Emirates' daily fifth-freedom flight between Barcelona and Mexico City — the only North American fifth-freedom route without a first-class cabin. Aeromexico now competes on this route with a 787, which may suppress fares. Bookable via Skywards or Aeroplan.</div>
-      </div>
-      <div class="card-footer">
-        <div class="freq">Frequency: <strong>Daily</strong> · No first class cabin</div>
-        <div style="display:flex;gap:8px">
-          <button class="track-btn" onclick="trackCash('BCN','MEX','Barcelona → Mexico City (EK)')">Track cash</button>
-          <button class="track-btn award" onclick="trackAward('BCN','MEX','BCN → MEX Skywards/Aeroplan')">Track awards</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Emirates JFK ↔ MXP -->
-    <div class="route-card">
-      <div class="card-header">
-        <div class="airline-row">
-          <div class="airline-name">Emirates</div>
-          <div class="aircraft-badge">Airbus A380</div>
-        </div>
-        <div class="route-display">
-          <div><div class="iata">JFK</div><div class="city">New York Kennedy</div></div>
-          <div class="route-arrow">⟷</div>
-          <div style="text-align:right"><div class="iata">MXP</div><div class="city">Milan Malpensa</div></div>
-        </div>
-        <div class="badges">
-          <span class="badge eco">Economy</span>
-          <span class="badge pe">Prem Economy</span>
-          <span class="badge bus">Business</span>
-          <span class="badge fst">First Class</span>
-          <span class="badge prog">Skywards</span>
-        </div>
-        <div class="desc">Emirates' flagship A380 on a US fifth-freedom route. Full four-class service including the legendary A380 first-class suite and bar. One of the best ways to experience Emirates' top product from the US at a competitive price point.</div>
-      </div>
-      <div class="card-footer">
-        <div class="freq">Frequency: <strong>Daily</strong> · A380 full config</div>
-        <div style="display:flex;gap:8px">
-          <button class="track-btn" onclick="trackCash('JFK','MXP','JFK → Milan A380 (EK)')">Track cash</button>
-          <button class="track-btn award" onclick="trackAward('JFK','MXP','JFK → MXP Skywards')">Track awards</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Emirates EWR ↔ ATH -->
-    <div class="route-card">
-      <div class="card-header">
-        <div class="airline-row">
-          <div class="airline-name">Emirates</div>
-          <div class="aircraft-badge">Boeing 777</div>
-        </div>
-        <div class="route-display">
-          <div><div class="iata">EWR</div><div class="city">Newark, NJ</div></div>
-          <div class="route-arrow">⟷</div>
-          <div style="text-align:right"><div class="iata">ATH</div><div class="city">Athens, Greece</div></div>
-        </div>
-        <div class="badges">
-          <span class="badge eco">Economy</span>
-          <span class="badge bus">Business</span>
-          <span class="badge prog">Skywards</span>
-        </div>
-        <div class="desc">Emirates' Newark–Athens fifth-freedom on the 777. A strong alternative to legacy carrier transatlantic options to Greece, especially for points redemptions via Skywards. Great positioning flight for Greek island hopping.</div>
-      </div>
-      <div class="card-footer">
-        <div class="freq">Frequency: <strong>Daily</strong> · Newark hub</div>
-        <div style="display:flex;gap:8px">
-          <button class="track-btn" onclick="trackCash('EWR','ATH','Newark → Athens (EK)')">Track cash</button>
-          <button class="track-btn award" onclick="trackAward('EWR','ATH','EWR → ATH Skywards')">Track awards</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Emirates MIA ↔ BOG -->
-    <div class="route-card">
-      <div class="card-header">
-        <div class="airline-row">
-          <div class="airline-name">Emirates</div>
-          <div class="aircraft-badge">Boeing 777 · First Class</div>
-        </div>
-        <div class="route-display">
-          <div><div class="iata">MIA</div><div class="city">Miami, FL</div></div>
-          <div class="route-arrow">⟷</div>
-          <div style="text-align:right"><div class="iata">BOG</div><div class="city">Bogotá, Colombia</div></div>
-        </div>
-        <div class="badges">
-          <span class="badge eco">Economy</span>
-          <span class="badge bus">Business</span>
-          <span class="badge fst">First Class</span>
-          <span class="badge prog">Skywards</span>
-        </div>
-        <div class="desc">The only Emirates fifth-freedom route in Latin America — and one of the few with a first-class cabin. Miami to Bogotá on Emirates first class is a genuinely rare combination. Strong Skywards redemption value on this route.</div>
-      </div>
-      <div class="card-footer">
-        <div class="freq">Frequency: <strong>Daily</strong> · First class available</div>
-        <div style="display:flex;gap:8px">
-          <button class="track-btn" onclick="trackCash('MIA','BOG','Miami → Bogotá First (EK)')">Track cash</button>
-          <button class="track-btn award" onclick="trackAward('MIA','BOG','MIA → BOG Skywards First')">Track awards</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Singapore LAX ↔ NRT -->
-    <div class="route-card">
-      <div class="card-header">
-        <div class="airline-row">
-          <div class="airline-name">Singapore Airlines</div>
-          <div class="aircraft-badge">Boeing 777-300ER</div>
-        </div>
-        <div class="route-display">
-          <div><div class="iata">LAX</div><div class="city">Los Angeles, CA</div></div>
-          <div class="route-arrow">⟷</div>
-          <div style="div class="iata">NRT</div><div class="city">Tokyo Narita</div></div>
-        </div>
-        <div class="badges">
-          <span class="badge eco">Economy</span>
-          <span class="badge pe">Prem Economy</span>
-          <span class="badge bus">Business</span>
-          <span class="badge fst">First Class</span>
-          <span class="badge prog">KrisFlyer</span>
-          <span class="badge prog">Aeroplan</span>
-        </div>
-        <div class="desc">The standout fifth-freedom for a Tokyo trip from the US West Coast. Singapore's 777-300ER with full four-class service. Strong KrisFlyer availability historically. Perfect positioning if you can get to LAX — often cheaper than nonstop US carriers to Tokyo.</div>
-      </div>
-      <div class="card-footer">
-        <div class="freq">Frequency: <strong>Daily</strong> · Best for Tokyo routing</div>
-        <div style="display:flex;gap:8px">
-          <button class="track-btn" onclick="trackCash('LAX','NRT','LAX → Tokyo (SQ 777)')">Track cash</button>
-          <button class="track-btn award" onclick="trackAward('LAX','NRT','LAX → NRT KrisFlyer')">Track awards</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Singapore JFK ↔ FRA -->
-    <div class="route-card">
-      <div class="card-header">
-        <div class="airline-row">
-          <div class="airline-name">Singapore Airlines</div>
-          <div class="aircraft-badge">Boeing 777-300ER</div>
-        </div>
-        <div class="route-display">
-          <div><div class="iata">JFK</div><div class="city">New York Kennedy</div></div>
-          <div class="route-arrow">⟷</div>
-          <div style="text-align:right"><div class="iata">FRA</div><div class="city">Frankfurt, Germany</div></div>
-        </div>
-        <div class="badges">
-          <span class="badge eco">Economy</span>
-          <span class="badge pe">Prem Economy</span>
-          <span class="badge bus">Business</span>
-          <span class="badge fst">First Class</span>
-          <span class="badge prog">KrisFlyer</span>
-          <span class="badge prog">Aeroplan</span>
-        </div>
-        <div class="desc">Singapore Airlines' JFK–Frankfurt fifth-freedom on the 777-300ER. Confirmed for winter 2025/26. Full Singapore product — one of the best business class products in the sky — on a transatlantic route typically dominated by legacy carriers.</div>
-      </div>
-      <div class="card-footer">
-        <div class="freq">Frequency: <strong>Daily</strong> · Full SQ product</div>
-        <div style="display:flex;gap:8px">
-          <button class="track-btn" onclick="trackCash('JFK','FRA','JFK → Frankfurt (SQ 777)')">Track cash</button>
-          <button class="track-btn award" onclick="trackAward('JFK','FRA','JFK → FRA KrisFlyer')">Track awards</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Singapore MXP ↔ BCN -->
-    <div class="route-card">
-      <div class="card-header">
-        <div class="airline-row">
-          <div class="airline-name">Singapore Airlines</div>
-          <div class="aircraft-badge">Airbus A350</div>
-        </div>
-        <div class="route-display">
-          <div><div class="iata">MXP</div><div class="city">Milan Malpensa</div></div>
-          <div class="route-arrow">⟷</div>
-          <div style="text-align:right"><div class="iata">BCN</div><div class="city">Barcelona, Spain</div></div>
-        </div>
-        <div class="badges">
-          <span class="badge eco">Economy</span>
-          <span class="badge pe">Prem Economy</span>
-          <span class="badge bus">Business</span>
-          <span class="badge prog">KrisFlyer</span>
-        </div>
-        <div class="desc">A short, comfortable hop on Singapore's A350 between Milan and Barcelona — a premium widebody on a route usually served by narrowbodies. Ideal as a positioning flight or a standalone luxury short-haul. Bookable with KrisFlyer miles.</div>
-      </div>
-      <div class="card-footer">
-        <div class="freq">Frequency: <strong>Daily</strong> · A350 widebody</div>
-        <div style="display:flex;gap:8px">
-          <button class="track-btn" onclick="trackCash('MXP','BCN','Milan → Barcelona (SQ A350)')">Track cash</button>
-          <button class="track-btn award" onclick="trackAward('MXP','BCN','MXP → BCN KrisFlyer')">Track awards</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Ethiopian EWR/IAD ↔ LFW -->
-    <div class="route-card">
-      <div class="card-header">
-        <div class="airline-row">
-          <div class="airline-name">Ethiopian Airlines</div>
-          <div class="aircraft-badge">Boeing 787</div>
-        </div>
-        <div class="route-display">
-          <div><div class="iata">EWR</div><div class="city">Newark / Dulles</div></div>
-          <div class="route-arrow">⟷</div>
-          <div style="text-align:right"><div class="iata">LFW</div><div class="city">Lomé, Togo</div></div>
-        </div>
-        <div class="badges">
-          <span class="badge eco">Economy</span>
-          <span class="badge bus">Business</span>
-          <span class="badge prog">Aeroplan</span>
-          <span class="badge prog">Star Alliance</span>
-        </div>
-        <div class="desc">Ethiopian's 787 fifth-freedom connecting Newark/Dulles to West Africa. Bookable with Aeroplan or other Star Alliance miles. A rare nonstop option to West Africa from the US East Coast, and a strong Aeroplan redemption opportunity.</div>
-      </div>
-      <div class="card-footer">
-        <div class="freq">Frequency: <strong>Multiple weekly</strong> · Star Alliance</div>
-        <div style="display:flex;gap:8px">
-          <button class="track-btn" onclick="trackCash('EWR','LFW','Newark → Lomé (ET 787)')">Track cash</button>
-          <button class="track-btn award" onclick="trackAward('EWR','LFW','EWR → LFW Aeroplan')">Track awards</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Ethiopian JFK ↔ ABJ -->
-    <div class="route-card">
-      <div class="card-header">
-        <div class="airline-row">
-          <div class="airline-name">Ethiopian Airlines</div>
-          <div class="aircraft-badge">Boeing 787</div>
-        </div>
-        <div class="route-display">
-          <div><div class="iata">JFK</div><div class="city">New York Kennedy</div></div>
-          <div class="route-arrow">⟷</div>
-          <div style="text-align:right"><div class="iata">ABJ</div><div class="city">Abidjan, Côte d'Ivoire</div></div>
-        </div>
-        <div class="badges">
-          <span class="badge eco">Economy</span>
-          <span class="badge bus">Business</span>
-          <span class="badge prog">Aeroplan</span>
-          <span class="badge prog">Star Alliance</span>
-        </div>
-        <div class="desc">JFK to Abidjan on Ethiopian's 787. Strong Aeroplan value given the limited competition on this route. One of the few options for business class travel between the US and Francophone West Africa on a modern widebody.</div>
-      </div>
-      <div class="card-footer">
-        <div class="freq">Frequency: <strong>Multiple weekly</strong> · Star Alliance</div>
-        <div style="display:flex;gap:8px">
-          <button class="track-btn" onclick="trackCash('JFK','ABJ','JFK → Abidjan (ET 787)')">Track cash</button>
-          <button class="track-btn award" onclick="trackAward('JFK','ABJ','JFK → ABJ Aeroplan')">Track awards</button>
-        </div>
-      </div>
-    </div>
-
   </div>
+
+  <!-- ── EMIRATES ────────────────────────────────────────────────────── -->
+  <div class="airline-section">
+    <div class="airline-hdr">
+      <h2>Emirates</h2>
+      <span class="airline-tag" style="background:rgba(77,217,192,.1);color:var(--teal);border-color:rgba(77,217,192,.2)">Independent</span>
+    </div>
+    <div class="grid">
+
+      <div class="route-card">
+        <div class="card-header">
+          <div class="airline-row">
+            <div class="airline-name">Emirates</div>
+            <div class="aircraft-badge">Boeing 777-200LR</div>
+          </div>
+          <div class="route-display">
+            <div><div class="iata">BCN</div><div class="city">Barcelona, Spain</div></div>
+            <div class="route-arrow">⟷</div>
+            <div style="text-align:right"><div class="iata">MEX</div><div class="city">Mexico City</div></div>
+          </div>
+          <div class="badges">
+            <span class="badge eco">Economy</span><span class="badge bus">Business</span>
+            <span class="badge prog">Skywards</span><span class="badge prog">Aeroplan</span>
+            <span class="badge warn">No First Class</span>
+          </div>
+          <div class="desc">Emirates' daily BCN–MEX fifth-freedom — the only North American fifth-freedom route without a first-class cabin. Aeromexico now competes on this route with a 787, which may help pricing. Bookable via Skywards or Aeroplan.</div>
+        </div>
+        <div class="card-footer">
+          <div class="freq">Frequency: <strong>Daily</strong> · No first class</div>
+          <div class="track-btns">
+            <button class="track-btn" onclick="trackCash('BCN','MEX','BCN → MEX (EK 777)')">BCN → MEX</button>
+            <button class="track-btn ret" onclick="trackCash('MEX','BCN','MEX → BCN (EK 777)')">MEX → BCN</button>
+            <button class="track-btn award" onclick="trackAward('BCN','MEX','BCN → MEX Skywards')">Award</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="route-card">
+        <div class="card-header">
+          <div class="airline-row">
+            <div class="airline-name">Emirates</div>
+            <div class="aircraft-badge">Airbus A380</div>
+          </div>
+          <div class="route-display">
+            <div><div class="iata">JFK</div><div class="city">New York Kennedy</div></div>
+            <div class="route-arrow">⟷</div>
+            <div style="text-align:right"><div class="iata">MXP</div><div class="city">Milan Malpensa</div></div>
+          </div>
+          <div class="badges">
+            <span class="badge eco">Economy</span><span class="badge pe">Prem Economy</span>
+            <span class="badge bus">Business</span><span class="badge fst">First Class</span>
+            <span class="badge prog">Skywards</span>
+          </div>
+          <div class="desc">Emirates flagship A380 with full four-class service including the first-class suite and bar. One of the best ways to experience Emirates' top product from the US.</div>
+        </div>
+        <div class="card-footer">
+          <div class="freq">Frequency: <strong>Daily</strong> · A380 full config</div>
+          <div class="track-btns">
+            <button class="track-btn" onclick="trackCash('JFK','MXP','JFK → Milan A380 (EK)')">JFK → MXP</button>
+            <button class="track-btn ret" onclick="trackCash('MXP','JFK','MXP → JFK A380 (EK)')">MXP → JFK</button>
+            <button class="track-btn award" onclick="trackAward('JFK','MXP','JFK → MXP Skywards')">Award</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="route-card">
+        <div class="card-header">
+          <div class="airline-row">
+            <div class="airline-name">Emirates</div>
+            <div class="aircraft-badge">Boeing 777</div>
+          </div>
+          <div class="route-display">
+            <div><div class="iata">EWR</div><div class="city">Newark, NJ</div></div>
+            <div class="route-arrow">⟷</div>
+            <div style="text-align:right"><div class="iata">ATH</div><div class="city">Athens, Greece</div></div>
+          </div>
+          <div class="badges">
+            <span class="badge eco">Economy</span><span class="badge bus">Business</span>
+            <span class="badge prog">Skywards</span>
+          </div>
+          <div class="desc">Emirates' Newark–Athens fifth-freedom on the 777. Strong alternative to legacy carriers for Greece travel, especially for Skywards redemptions. Great positioning for Greek island hopping.</div>
+        </div>
+        <div class="card-footer">
+          <div class="freq">Frequency: <strong>Daily</strong> · Newark hub</div>
+          <div class="track-btns">
+            <button class="track-btn" onclick="trackCash('EWR','ATH','EWR → Athens (EK)')">EWR → ATH</button>
+            <button class="track-btn ret" onclick="trackCash('ATH','EWR','ATH → EWR (EK)')">ATH → EWR</button>
+            <button class="track-btn award" onclick="trackAward('EWR','ATH','EWR → ATH Skywards')">Award</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="route-card">
+        <div class="card-header">
+          <div class="airline-row">
+            <div class="airline-name">Emirates</div>
+            <div class="aircraft-badge">Boeing 777 · First Class</div>
+          </div>
+          <div class="route-display">
+            <div><div class="iata">MIA</div><div class="city">Miami, FL</div></div>
+            <div class="route-arrow">⟷</div>
+            <div style="text-align:right"><div class="iata">BOG</div><div class="city">Bogotá, Colombia</div></div>
+          </div>
+          <div class="badges">
+            <span class="badge eco">Economy</span><span class="badge bus">Business</span>
+            <span class="badge fst">First Class</span><span class="badge prog">Skywards</span>
+          </div>
+          <div class="desc">The only Emirates fifth-freedom in Latin America — and one of the few with a first-class cabin. Miami to Bogotá on Emirates first class is a genuinely rare combination.</div>
+        </div>
+        <div class="card-footer">
+          <div class="freq">Frequency: <strong>Daily</strong> · First class available</div>
+          <div class="track-btns">
+            <button class="track-btn" onclick="trackCash('MIA','BOG','MIA → Bogotá First (EK)')">MIA → BOG</button>
+            <button class="track-btn ret" onclick="trackCash('BOG','MIA','BOG → MIA First (EK)')">BOG → MIA</button>
+            <button class="track-btn award" onclick="trackAward('MIA','BOG','MIA → BOG Skywards First')">Award</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── SINGAPORE AIRLINES ─────────────────────────────────────────── -->
+  <div class="airline-section">
+    <div class="airline-hdr">
+      <h2>Singapore Airlines</h2>
+      <span class="airline-tag" style="background:rgba(122,184,232,.1);color:#7ab8e8;border-color:rgba(122,184,232,.2)">Star Alliance</span>
+    </div>
+    <div class="grid">
+
+      <div class="route-card">
+        <div class="card-header">
+          <div class="airline-row">
+            <div class="airline-name">Singapore Airlines</div>
+            <div class="aircraft-badge">Boeing 777-300ER</div>
+          </div>
+          <div class="route-display">
+            <div><div class="iata">LAX</div><div class="city">Los Angeles, CA</div></div>
+            <div class="route-arrow">⟷</div>
+            <div style="text-align:right"><div class="iata">NRT</div><div class="city">Tokyo Narita</div></div>
+          </div>
+          <div class="badges">
+            <span class="badge eco">Economy</span><span class="badge pe">Prem Economy</span>
+            <span class="badge bus">Business</span><span class="badge fst">First Class</span>
+            <span class="badge prog">KrisFlyer</span><span class="badge prog">Aeroplan</span>
+          </div>
+          <div class="desc">The standout fifth-freedom for a Tokyo trip from the US West Coast. Singapore's 777-300ER with full four-class service. Strong KrisFlyer availability. Often cheaper than nonstop US carriers to Tokyo.</div>
+        </div>
+        <div class="card-footer">
+          <div class="freq">Frequency: <strong>Daily</strong> · Best for Tokyo routing</div>
+          <div class="track-btns">
+            <button class="track-btn" onclick="trackCash('LAX','NRT','LAX → Tokyo (SQ 777)')">LAX → NRT</button>
+            <button class="track-btn ret" onclick="trackCash('NRT','LAX','NRT → LAX (SQ 777)')">NRT → LAX</button>
+            <button class="track-btn award" onclick="trackAward('LAX','NRT','LAX → NRT KrisFlyer')">Award</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="route-card">
+        <div class="card-header">
+          <div class="airline-row">
+            <div class="airline-name">Singapore Airlines</div>
+            <div class="aircraft-badge">Boeing 777-300ER</div>
+          </div>
+          <div class="route-display">
+            <div><div class="iata">JFK</div><div class="city">New York Kennedy</div></div>
+            <div class="route-arrow">⟷</div>
+            <div style="text-align:right"><div class="iata">FRA</div><div class="city">Frankfurt, Germany</div></div>
+          </div>
+          <div class="badges">
+            <span class="badge eco">Economy</span><span class="badge pe">Prem Economy</span>
+            <span class="badge bus">Business</span><span class="badge fst">First Class</span>
+            <span class="badge prog">KrisFlyer</span><span class="badge prog">Aeroplan</span>
+          </div>
+          <div class="desc">Singapore's JFK–Frankfurt fifth-freedom on the 777-300ER. Full Singapore product on a transatlantic route usually dominated by legacy carriers. Confirmed for winter 2025/26.</div>
+        </div>
+        <div class="card-footer">
+          <div class="freq">Frequency: <strong>Daily</strong> · Full SQ product</div>
+          <div class="track-btns">
+            <button class="track-btn" onclick="trackCash('JFK','FRA','JFK → Frankfurt (SQ 777)')">JFK → FRA</button>
+            <button class="track-btn ret" onclick="trackCash('FRA','JFK','FRA → JFK (SQ 777)')">FRA → JFK</button>
+            <button class="track-btn award" onclick="trackAward('JFK','FRA','JFK → FRA KrisFlyer')">Award</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="route-card">
+        <div class="card-header">
+          <div class="airline-row">
+            <div class="airline-name">Singapore Airlines</div>
+            <div class="aircraft-badge">Airbus A350</div>
+          </div>
+          <div class="route-display">
+            <div><div class="iata">MXP</div><div class="city">Milan Malpensa</div></div>
+            <div class="route-arrow">⟷</div>
+            <div style="text-align:right"><div class="iata">BCN</div><div class="city">Barcelona, Spain</div></div>
+          </div>
+          <div class="badges">
+            <span class="badge eco">Economy</span><span class="badge pe">Prem Economy</span>
+            <span class="badge bus">Business</span><span class="badge prog">KrisFlyer</span>
+          </div>
+          <div class="desc">A short, comfortable hop on Singapore's A350 between Milan and Barcelona — a premium widebody on a route usually served by narrowbodies. Ideal as a positioning flight or luxury short-haul.</div>
+        </div>
+        <div class="card-footer">
+          <div class="freq">Frequency: <strong>Daily</strong> · A350 widebody</div>
+          <div class="track-btns">
+            <button class="track-btn" onclick="trackCash('MXP','BCN','Milan → Barcelona (SQ A350)')">MXP → BCN</button>
+            <button class="track-btn ret" onclick="trackCash('BCN','MXP','BCN → Milan (SQ A350)')">BCN → MXP</button>
+            <button class="track-btn award" onclick="trackAward('MXP','BCN','MXP → BCN KrisFlyer')">Award</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── ETHIOPIAN AIRLINES ──────────────────────────────────────────── -->
+  <div class="airline-section">
+    <div class="airline-hdr">
+      <h2>Ethiopian Airlines</h2>
+      <span class="airline-tag" style="background:rgba(122,184,232,.1);color:#7ab8e8;border-color:rgba(122,184,232,.2)">Star Alliance</span>
+    </div>
+    <div class="grid">
+
+      <div class="route-card">
+        <div class="card-header">
+          <div class="airline-row">
+            <div class="airline-name">Ethiopian Airlines</div>
+            <div class="aircraft-badge">Boeing 787</div>
+          </div>
+          <div class="route-display">
+            <div><div class="iata">EWR</div><div class="city">Newark / Dulles</div></div>
+            <div class="route-arrow">⟷</div>
+            <div style="text-align:right"><div class="iata">LFW</div><div class="city">Lomé, Togo</div></div>
+          </div>
+          <div class="badges">
+            <span class="badge eco">Economy</span><span class="badge bus">Business</span>
+            <span class="badge prog">Aeroplan</span><span class="badge prog">Star Alliance</span>
+          </div>
+          <div class="desc">Ethiopian's 787 connecting Newark/Dulles to West Africa. One of the few nonstop options to West Africa from the US East Coast. Strong Aeroplan redemption opportunity.</div>
+        </div>
+        <div class="card-footer">
+          <div class="freq">Frequency: <strong>Multiple weekly</strong> · Star Alliance</div>
+          <div class="track-btns">
+            <button class="track-btn" onclick="trackCash('EWR','LFW','EWR → Lomé (ET 787)')">EWR → LFW</button>
+            <button class="track-btn ret" onclick="trackCash('LFW','EWR','LFW → EWR (ET 787)')">LFW → EWR</button>
+            <button class="track-btn award" onclick="trackAward('EWR','LFW','EWR → LFW Aeroplan')">Award</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="route-card">
+        <div class="card-header">
+          <div class="airline-row">
+            <div class="airline-name">Ethiopian Airlines</div>
+            <div class="aircraft-badge">Boeing 787</div>
+          </div>
+          <div class="route-display">
+            <div><div class="iata">JFK</div><div class="city">New York Kennedy</div></div>
+            <div class="route-arrow">⟷</div>
+            <div style="text-align:right"><div class="iata">ABJ</div><div class="city">Abidjan, Côte d'Ivoire</div></div>
+          </div>
+          <div class="badges">
+            <span class="badge eco">Economy</span><span class="badge bus">Business</span>
+            <span class="badge prog">Aeroplan</span><span class="badge prog">Star Alliance</span>
+          </div>
+          <div class="desc">JFK to Abidjan on Ethiopian's 787. Strong Aeroplan value on this route with limited competition. One of the few business class options between the US and Francophone West Africa on a modern widebody.</div>
+        </div>
+        <div class="card-footer">
+          <div class="freq">Frequency: <strong>Multiple weekly</strong> · Star Alliance</div>
+          <div class="track-btns">
+            <button class="track-btn" onclick="trackCash('JFK','ABJ','JFK → Abidjan (ET 787)')">JFK → ABJ</button>
+            <button class="track-btn ret" onclick="trackCash('ABJ','JFK','ABJ → JFK (ET 787)')">ABJ → JFK</button>
+            <button class="track-btn award" onclick="trackAward('JFK','ABJ','JFK → ABJ Aeroplan')">Award</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <div id="toast"></div>
@@ -408,29 +433,26 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;
 function toast(msg,d=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d)}
 
 async function trackCash(origin,dest,label){
-  // Add to cash routes via API with today's date as placeholder
-  const today=new Date();
-  const y=today.getFullYear();
-  const slices=[{departure_id:origin,arrival_id:dest,date:`${y+1}-02-01`}];
+  const nextYear=new Date().getFullYear()+1;
   const res=await fetch('/api/cash/routes',{method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({label,slices,alliance:'any',airlines:[],cabin:'business'})});
+    body:JSON.stringify({label,slices:[{departure_id:origin,arrival_id:dest,date:`${nextYear}-02-01`}],
+      alliance:'any',airlines:[],cabin:'business'})});
   const data=await res.json();
   if(data.error){toast('⚠ '+data.error);return;}
-  toast('✓ Added to your cash tracker! Set your target on the dashboard.');
+  toast('✓ '+label+' added to Cash Trips!');
 }
 
 async function trackAward(origin,dest,label){
-  const today=new Date();
-  const y=today.getFullYear();
+  const nextYear=new Date().getFullYear()+1;
   const res=await fetch('/api/award/routes',{method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({label,origin,destination:dest,
-      date:`${y+1}-02-01`,trip_type:'one_way',cabin:'business',
+      date:`${nextYear}-02-01`,trip_type:'one_way',cabin:'business',
       alliance:'any',programs:[],max_miles:null,only_direct:false})});
   const data=await res.json();
   if(data.error){toast('⚠ '+data.error);return;}
-  toast('✓ Added to your award tracker! Set your miles target on the dashboard.');
+  toast('✓ '+label+' added to Award Trips!');
 }
 </script>
 </body>

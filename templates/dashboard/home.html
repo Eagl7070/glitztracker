@@ -656,8 +656,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="card">
         <div class="card-hdr">
           <div class="card-title">SWU Trips</div>
-          <button class="btn sm" id="showSWUBtn" onclick="document.getElementById('swuForm').style.display='block';this.style.display='none';
-    if(HOME_AIRPORT){const o=document.querySelector('[name="origin"]');if(o&&!o.value)o.value=HOME_AIRPORT;}">+ Add SWU trip</button>
+          <button class="btn sm" id="showSWUBtn" onclick="openSWUForm()">+ Add SWU trip</button>
         </div>
         {% if swu_logs %}
         <table class="swu-table">
@@ -1734,6 +1733,19 @@ function renderChart(hist){
   }catch(e){console.error("Chart error:",e);}
 }
 
+
+
+function openSWUForm(){
+  const f=document.getElementById('swuForm');
+  if(f)f.style.display='block';
+  const btn=document.getElementById('showSWUBtn');
+  if(btn)btn.style.display='none';
+  if(HOME_AIRPORT){
+    const o=document.querySelector('[name="origin"]');
+    if(o&&!o.value)o.value=HOME_AIRPORT;
+  }
+  updateSwuDate();
+}
 
 async function loadAll(){
   [cashRoutes,awardRoutes,history]=await Promise.all([
