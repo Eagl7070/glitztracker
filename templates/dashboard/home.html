@@ -343,7 +343,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="pill-icon">✈</div>
       <div class="pill-body">
         <div class="pill-count" id="sCashCount">0</div>
-        <div class="pill-lbl">Cash Routes</div>
+        <div class="pill-lbl">Cash Trips</div>
       </div>
       <div class="pill-sub" id="sBestFare">—</div>
     </div>
@@ -351,7 +351,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="pill-icon">🎟</div>
       <div class="pill-body">
         <div class="pill-count" id="sAwardCount">0</div>
-        <div class="pill-lbl">Award Routes</div>
+        <div class="pill-lbl">Award Trips</div>
       </div>
       <div class="pill-sub" id="sBestMiles">—</div>
     </div>
@@ -359,7 +359,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="pill-icon">⬆</div>
       <div class="pill-body">
         <div class="pill-count" id="sSWUCount">0</div>
-        <div class="pill-lbl">SWU Tracked</div>
+        <div class="pill-lbl">SWU Trips</div>
       </div>
       <div class="pill-sub" id="sSWUSub">upgrades</div>
     </div>
@@ -1681,6 +1681,57 @@ function editRoute(id,type){
       jsend('/api/award/routes/'+id,'DELETE').then(()=>{toast('Award trip removed — re-add below');loadAll();});
     }
   }
+}
+
+
+
+function renderChart(hist){
+  const pal=["#f5c842","#4dd9c0","#f5a623","#7ae87a","#c47af5"];
+  const pal2=["#7ab8e8","#a8c8f8","#78a8d8"];
+  const ds=[];
+  const cg={};
+  hist.filter(h=>h.route_type==="cash"&&h.price).forEach(h=>{
+    const r=cashRoutes.find(r=>r.id===h.route_id);
+    const k=r?.label||("Route "+h.route_id);
+    (cg[k]=cg[k]||[]).push({x:h.checked_at,y:num(h.price)});
+  });
+  Object.keys(cg).forEach((k,i)=>ds.push({
+    label:k,data:cg[k],borderColor:pal[i%pal.length],
+    backgroundColor:"transparent",yAxisID:"y",tension:.3,pointRadius:4
+  }));
+  const ag={};
+  hist.filter(h=>h.route_type==="award"&&h.miles).forEach(h=>{
+    const k=(h.program||"award")+":"+h.route_id;
+    (ag[k]=ag[k]||[]).push({x:h.checked_at,y:num(h.miles)});
+  });
+  Object.keys(ag).forEach((k,i)=>ds.push({
+    label:"mi "+k,data:ag[k],borderColor:pal2[i%pal2.length],
+    backgroundColor:"transparent",borderDash:[5,4],yAxisID:"y1",tension:.3,pointRadius:3
+  }));
+  const has=ds.some(d=>d.data.length);
+  const noteEl=document.getElementById("chartNote");
+  if(noteEl)noteEl.style.display=has?"none":"";
+  const canvas=document.getElementById("chart");
+  if(!canvas)return;
+  if(chartInst)chartInst.destroy();
+  if(!has){chartInst=null;return;}
+  try{
+    chartInst=new Chart(canvas,{type:"line",data:{datasets:ds},options:{
+      responsive:true,
+      interaction:{mode:"index",intersect:false},
+      plugins:{legend:{labels:{color:"#c8d4ee",font:{size:11},boxWidth:12}}},
+      scales:{
+        x:{type:"time",time:{unit:"day"},ticks:{color:"#8a9ab8",font:{size:11}},
+           grid:{color:"rgba(255,255,255,.05)"}},
+        y:{position:"left",ticks:{color:"#f5c842",callback:v=>"$"+v,font:{size:11}},
+           grid:{color:"rgba(255,255,255,.05)"},
+           title:{display:true,text:"Cash (USD)",color:"#f5c842",font:{size:11}}},
+        y1:{position:"right",ticks:{color:"#7ab8e8",font:{size:11}},
+            grid:{drawOnChartArea:false},
+            title:{display:true,text:"Miles",color:"#7ab8e8",font:{size:11}}}
+      }
+    }});
+  }catch(e){console.error("Chart error:",e);}
 }
 
 
