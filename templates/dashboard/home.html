@@ -316,6 +316,7 @@ textarea{resize:vertical;min-height:60px}
     <span class="plan-chip plan-{{current_user.plan}}">{{current_user.plan|upper}}</span>
     <a href="/dashboard/fifth-freedom"><button class="btn sm">✈ Fifth Freedom</button></a>
     <a href="/dashboard/calendar"><button class="btn sm">📅 Calendar</button></a>
+    <button class="btn sm" id="checkNowBtn" onclick="runCheckNow()" style="border-color:var(--gold);color:var(--gold)">⚡ Check Now</button>
     {% if current_user.plan != "elite" %}
     <a href="/billing/upgrade"><button class="btn sm">Upgrade</button></a>
     {% else %}
@@ -1494,6 +1495,28 @@ document.addEventListener('DOMContentLoaded',()=>{
   updateSwuDate();
   // Also auto-fill swu airline val if already typed
 });
+
+
+async function runCheckNow(){
+  const btn = document.getElementById('checkNowBtn');
+  if(btn){ btn.textContent='⏳ Checking…'; btn.disabled=true; btn.style.opacity='.6'; }
+  toast('Running checks on all your routes…', 4000);
+  try{
+    await Promise.all([
+      jsend('/api/run/cash','POST'),
+      jsend('/api/run/award','POST'),
+    ]);
+    // Wait 30s for checker to run then reload data
+    setTimeout(()=>{
+      loadAll();
+      if(btn){ btn.textContent='⚡ Check Now'; btn.disabled=false; btn.style.opacity='1'; }
+      toast('✓ Check complete — results updated');
+    }, 30000);
+  }catch(e){
+    if(btn){ btn.textContent='⚡ Check Now'; btn.disabled=false; btn.style.opacity='1'; }
+    toast('Check failed — try again');
+  }
+}
 
 loadAll();
 setInterval(loadAll,5*60*1000);
