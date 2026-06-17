@@ -29,6 +29,7 @@ class User(UserMixin, db.Model):
     # Notifications — user can enable any combination
     notify_email          = db.Column(db.Boolean, default=True)
     notify_sms            = db.Column(db.Boolean, default=False)
+    notify_whatsapp       = db.Column(db.Boolean, default=False)
     notify_telegram       = db.Column(db.Boolean, default=False)
     alert_email           = db.Column(db.String(255))   # defaults to login email
     phone_number          = db.Column(db.String(30))    # E.164 format e.g. +19725551234
@@ -54,7 +55,7 @@ class User(UserMixin, db.Model):
     def effective_email(self):      return self.alert_email or self.email
     @property
     def any_notify_enabled(self):
-        return self.notify_email or self.notify_sms or self.notify_telegram
+        return self.notify_email or self.notify_sms or self.notify_telegram or self.notify_whatsapp
 
 
 class CashRoute(db.Model):
