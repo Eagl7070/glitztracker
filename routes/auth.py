@@ -72,6 +72,7 @@ def account():
             current_user.notify_telegram = "notify_telegram" in request.form
             current_user.notify_sms   = "notify_sms" in request.form
             current_user.notify_whatsapp = "notify_whatsapp" in request.form
+        current_user.home_airport = request.form.get("home_airport","").upper().strip()[:4]
         wa_num = request.form.get("whatsapp_number","").strip()
         if wa_num and not current_user.phone_number:
             current_user.phone_number = wa_num
