@@ -116,7 +116,14 @@ hr.div{border:none;border-top:1px solid var(--line);margin:16px 0}
       </div>
       <div class="check-row">
         <input type="checkbox" name="notify_whatsapp" {{'checked' if current_user.notify_whatsapp}}>
-        WhatsApp alerts (uses same verified phone number)
+        WhatsApp alerts
+      </div>
+      <label class="flbl">WhatsApp number (E.164 e.g. +19725551234)</label>
+      <input type="tel" name="whatsapp_number" placeholder="+19725551234"
+             value="{{current_user.phone_number or ''}}">
+      <div style="font-size:11px;color:var(--muted);margin-top:-10px;margin-bottom:14px;line-height:1.5">
+        First join sandbox: send <strong style="color:var(--gold)">join &lt;your-code&gt;</strong>
+        to <strong style="color:var(--gold)">+1 415 523 8886</strong> on WhatsApp.
       </div>
       <label class="flbl">Telegram chat ID</label>
       <input type="text" name="telegram_chat_id" placeholder="e.g. 1234567890"
