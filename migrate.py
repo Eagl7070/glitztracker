@@ -10,14 +10,13 @@ import sqlite3
 conn = sqlite3.connect(db_path)
 cur = conn.cursor()
 
-# Check existing columns
 cur.execute("PRAGMA table_info(users)")
 existing = {row[1] for row in cur.fetchall()}
 print("Existing columns:", sorted(existing))
 
-# Add any missing columns
 migrations = [
     ("notify_whatsapp", "INTEGER DEFAULT 0"),
+    ("home_airport",    "TEXT DEFAULT ''"),
 ]
 
 for col, definition in migrations:
@@ -28,7 +27,7 @@ for col, definition in migrations:
         except Exception as e:
             print(f"Error adding {col}: {e}")
     else:
-        print(f"Column already exists: {col}")
+        print(f"Already exists: {col}")
 
 conn.commit()
 conn.close()

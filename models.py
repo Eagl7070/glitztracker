@@ -36,6 +36,7 @@ class User(UserMixin, db.Model):
     phone_verified        = db.Column(db.Boolean, default=False)
     telegram_chat_id      = db.Column(db.String(60))
     global_target_price   = db.Column(db.Float, default=3000.0)
+    home_airport          = db.Column(db.String(5), default="")
 
     # Relationships
     cash_routes   = db.relationship("CashRoute",  backref="user", lazy=True, cascade="all, delete-orphan")
