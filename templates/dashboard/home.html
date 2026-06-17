@@ -227,6 +227,22 @@ textarea{resize:vertical;min-height:60px}
   padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap; }
 .target-save.teal-btn{ background:var(--teal);color:#001a18; }
 
+
+/* SWU boarding passes - purple theme */
+.pass.swu .pass-airline{ color:#c47af5; }
+.pass.swu .chip{ background:rgba(196,122,245,.08); border-color:rgba(196,122,245,.2); color:#c47af5; }
+.pass.swu .pass-btm{ background:rgba(16,4,24,.5); }
+.pass-swu-status{ font-size:13px;font-weight:700;line-height:1;margin-bottom:6px; }
+.swu-c-pending{ color:var(--muted); }
+.swu-c-requested{ color:#7ab8e8; }
+.swu-c-waitlisted{ color:var(--yellow,#eab308); }
+.swu-c-cleared{ color:#7fe8a8; }
+.swu-c-expired{ color:var(--muted); }
+.swu-c-denied{ color:var(--red); }
+.swu-monitor-dot{ width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle; }
+.dot-active{ background:var(--green,#4caf7a);box-shadow:0 0 6px rgba(76,175,122,.5); }
+.dot-inactive{ background:var(--muted); }
+
 </style>
 </head>
 <body>
@@ -258,13 +274,31 @@ textarea{resize:vertical;min-height:60px}
   <div class="passes" id="passes"></div>
   <!-- Award passes -->
   <div class="passes" id="awardPasses" style="margin-top:-8px"></div>
+  <!-- SWU passes -->
+  <div class="passes" id="swuPasses" style="margin-top:-8px"></div>
 
   <!-- Stats -->
   <div class="stats">
-    <div class="stat"><div class="stat-lbl">Best fare found</div><div class="stat-val gold" id="sBest">—</div><div class="stat-sub" id="sBestSub">Run a check first</div></div>
-    <div class="stat"><div class="stat-lbl">Your target</div><div class="stat-val" id="sTarget">—</div><div class="stat-sub" id="sGap"></div></div>
-    <div class="stat"><div class="stat-lbl">Lowest award</div><div class="stat-val teal" id="sAward">—</div><div class="stat-sub" id="sAwardSub">No award data</div></div>
-    <div class="stat"><div class="stat-lbl">Routes tracked</div><div class="stat-val" id="sRoutes">0</div><div class="stat-sub">itineraries</div></div>
+    <div class="stat">
+      <div class="stat-lbl">Cash routes</div>
+      <div class="stat-val gold" id="sCashCount">0</div>
+      <div class="stat-sub" id="sBestFare">No data yet</div>
+    </div>
+    <div class="stat">
+      <div class="stat-lbl">Award routes</div>
+      <div class="stat-val teal" id="sAwardCount">0</div>
+      <div class="stat-sub" id="sBestMiles">No data yet</div>
+    </div>
+    <div class="stat">
+      <div class="stat-lbl">SWU tracked</div>
+      <div class="stat-val" style="color:#c47af5" id="sSWUCount">0</div>
+      <div class="stat-sub" id="sSWUSub">upgrade requests</div>
+    </div>
+    <div class="stat">
+      <div class="stat-lbl">Best fare found</div>
+      <div class="stat-val gold" id="sBest">—</div>
+      <div class="stat-sub" id="sBestSub">Run a check first</div>
+    </div>
   </div>
 
   <div class="grid">
@@ -568,6 +602,64 @@ function saveAwardTarget(routeId){
     .then(()=>{toast('✓ Award alert set at '+v.toLocaleString()+' mi');loadAll();});
 }
 
+
+function renderSWUPasses(){
+  const el=document.getElementById('swuPasses');
+  if(!el)return;
+  // Read SWU data from server-rendered table rows
+  const rows=[...document.querySelectorAll('.swu-table tbody tr')];
+  if(!rows.length){el.innerHTML='';return;}
+  const STATUS_COLOR={pending:'swu-c-pending',requested:'swu-c-requested',
+    waitlisted:'swu-c-waitlisted',cleared:'swu-c-cleared',
+    expired:'swu-c-expired',denied:'swu-c-denied'};
+  el.innerHTML=rows.map(row=>{
+    const cells=row.querySelectorAll('td');
+    if(cells.length<5)return'';
+    const flight=cells[0]?.textContent?.trim()||'';
+    const cabin=cells[1]?.textContent?.trim()||'Business';
+    const statusSel=cells[2]?.querySelector('select');
+    const status=statusSel?.value||cells[2]?.textContent?.trim()||'pending';
+    const awardCell=cells[3]?.textContent?.trim()||'';
+    const hasSpace=awardCell.includes('Open')||awardCell.includes('mi');
+    const notes=cells[4]?.textContent?.trim()||'';
+    // Parse flight string: "AA70 DFW→LHR 2026-03-15"
+    const parts=flight.split(' ');
+    const flightNum=parts[0]||flight;
+    const route=parts[1]||'';
+    const date=parts[2]||'';
+    const [orig,dest]=(route||'').split('→');
+    const sc=STATUS_COLOR[status]||'swu-c-pending';
+    const statusLabel=status.charAt(0).toUpperCase()+status.slice(1);
+    return`<div class="pass swu">
+      <div class="pass-top">
+        <div class="pass-airline" style="color:#c47af5">SWU Upgrade Request ✦ ${flightNum}</div>
+        <div class="pass-badges">
+          <span class="badge" style="color:#c47af5;border-color:rgba(196,122,245,.3)">${cabin}</span>
+          ${hasSpace?'<span class="badge" style="color:#7fe8a8;border-color:rgba(76,175,122,.3);animation:pulse 2s infinite">Award Space Open</span>':''}
+        </div>
+        <div class="pass-route">
+          <div><div class="pass-iata">${orig||'???'}</div><div class="pass-lbl">origin</div></div>
+          <div class="pass-arrow" style="color:#c47af5">——→</div>
+          <div style="text-align:right"><div class="pass-iata">${dest||'???'}</div><div class="pass-lbl">destination</div></div>
+        </div>
+        <div class="chips"><span class="chip" style="color:#c47af5;border-color:rgba(196,122,245,.2)">${date}</span></div>
+      </div>
+      <div class="pass-tear"><div class="hole l"></div><div class="hole r"></div></div>
+      <div class="pass-btm">
+        <div class="pass-plbl" style="color:#c47af5">upgrade status</div>
+        <div class="pass-swu-status ${sc}">${statusLabel}</div>
+        <div class="pass-meta">
+          <div class="pass-detail">${notes||awardCell||'Monitoring award space'}</div>
+          <div style="display:flex;align-items:center">
+            <span class="swu-monitor-dot ${hasSpace?'dot-active':'dot-inactive'}"></span>
+            <span style="font-size:11px;color:var(--muted)">${hasSpace?'Space open!':'Monitoring'}</span>
+          </div>
+        </div>
+      </div>
+    </div>`
+  }).filter(Boolean).join('');
+}
+
 function renderAwardPasses(routes,hist){
   const el=document.getElementById('awardPasses');
   if(!el)return;
@@ -623,7 +715,7 @@ async function loadAll(){
   ]);
   const t=num($("#targetInput").value)||null;
   renderPasses(cashRoutes,history,t);
-  renderStats(cashRoutes,awardRoutes,history,t);
+  renderStats(cashRoutes,awardRoutes,history);
   renderItinList(cashRoutes);
   renderAwardList(awardRoutes);
   renderChart(history);
@@ -669,17 +761,40 @@ function renderPasses(routes,hist,target){
     </div>`}).join("");
 }
 
-function renderStats(cash,award,hist,target){
+function renderStats(cash,award,hist){
+  // Counts
+  const cashEl=document.getElementById("sCashCount");
+  const awardEl=document.getElementById("sAwardCount");
+  if(cashEl)cashEl.textContent=cash.length;
+  if(awardEl)awardEl.textContent=award.length;
+
+  // SWU count from DOM (server-rendered)
+  const swuRows=document.querySelectorAll(".swu-table tbody tr");
+  const swuEl=document.getElementById("sSWUCount");
+  if(swuEl)swuEl.textContent=swuRows.length;
+
+  // Best cash fare
   const cashH=hist.filter(h=>h.route_type==="cash"&&h.price);
   const best=cashH.length?Math.min(...cashH.map(h=>num(h.price))):null;
   const bestH=cashH.find(h=>num(h.price)===best);
-  $("#sBest").textContent=fmt(best);
-  $("#sBestSub").textContent=bestH?(bestH.route_detail||"").slice(0,38)||"Run a check":"Run a check first";
-  $("#sTarget").textContent=target?fmt(target):"Not set";
-  if(best&&target){const g=best-target;$("#sGap").textContent=g<=0?"✓ Below target!":"$"+Math.round(g).toLocaleString()+" above";$("#sGap").style.color=g<=0?"#7fe8a8":"var(--muted)";}
+  const bestEl=document.getElementById("sBest");
+  const bestSubEl=document.getElementById("sBestSub");
+  if(bestEl)bestEl.textContent=fmt(best);
+  if(bestSubEl)bestSubEl.textContent=bestH?(bestH.route_detail||"").slice(0,38)||"Run a check":"Run a check first";
+
+  // Best fare sub for cash count card
+  const bestFareEl=document.getElementById("sBestFare");
+  if(bestFareEl)bestFareEl.textContent=best?"Best: "+fmt(best):"No data yet";
+
+  // Best miles for award count card
   const awardH=hist.filter(h=>h.route_type==="award"&&h.miles);
-  if(awardH.length){const lo=Math.min(...awardH.map(h=>num(h.miles)));const lr=awardH.find(h=>num(h.miles)===lo);$("#sAward").textContent=fmtMi(lo);const tx=lr?.taxes?` + $${Math.round(lr.taxes)} taxes`:"";$("#sAwardSub").textContent=(lr?.program||"")+tx;}
-  $("#sRoutes").textContent=cash.length;
+  const bestMilesEl=document.getElementById("sBestMiles");
+  if(awardH.length){
+    const lo=Math.min(...awardH.map(h=>num(h.miles)));
+    const lr=awardH.find(h=>num(h.miles)===lo);
+    const tx=lr?.taxes?` +$${Math.round(lr.taxes)}t`:"";
+    if(bestMilesEl)bestMilesEl.textContent="Best: "+fmtMi(lo)+tx;
+  }
 }
 
 function updateChecked(hist){
@@ -839,11 +954,7 @@ async function submitAward(){
 }
 async function delAward(id){await jsend("/api/award/routes/"+id,"DELETE");toast("Removed");loadAll();}
 
-async function saveTarget(){
-  const v=parseFloat($("#targetInput").value);if(isNaN(v)){toast("Enter a number");return}
-  await jsend("/api/cash/target","POST",{target_price:v});
-  toast("Target saved — alerts fire at "+fmt(v));loadAll();
-}
+// Per-route targets used instead of global target
 
 // SWU form
 function showSWUForm(){const el=$("#swuForm");if(el)el.style.display="block";}
