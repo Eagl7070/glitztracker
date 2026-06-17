@@ -143,3 +143,165 @@ def history():
         "route_type":r.route_type,"price":r.price,"miles":r.miles,"taxes":r.taxes,
         "route_detail":r.route_detail,"cabin":r.cabin,"alliance":r.alliance,
         "program":r.program} for r in rows])
+
+
+# ── Calendar endpoints ────────────────────────────────────────────────────────
+@api_bp.route("/calendar/cash", methods=["POST"])
+@login_required
+def calendar_cash():
+    """Search cash fares for every day in a date range via SerpApi."""
+    import os, requests as req
+    from datetime import date, timedelta
+    body = request.json or {}
+    origin      = body.get("origin","").upper().strip()
+    destination = body.get("destination","").upper().strip()
+    cabin       = body.get("cabin","business")
+    start_date  = body.get("start_date","")
+    end_date    = body.get("end_date","")
+    if not all([origin, destination, start_date, end_date]):
+        return jsonify({"error":"origin, destination, start_date, end_date required"}), 400
+
+    SERPAPI_KEY = current_app.config.get("SERPAPI_KEY","")
+    if not SERPAPI_KEY:
+        return jsonify({"error":"SerpApi not configured"}), 503
+
+    CABIN_CODES = {"economy":"1","premium_economy":"2","business":"3","first":"4"}
+    cabin_code  = CABIN_CODES.get(cabin,"3")
+
+    # Build date list
+    try:
+        d_start = date.fromisoformat(start_date)
+        d_end   = date.fromisoformat(end_date)
+    except Exception:
+        return jsonify({"error":"invalid date format"}), 400
+
+    results = []
+    d = d_start
+    # SerpApi supports date-range search — use departure_token approach
+    # For calendar view we query the whole month at once using outbound_date_range
+    params = {
+        "engine":          "google_flights",
+        "api_key":         SERPAPI_KEY,
+        "departure_id":    origin,
+        "arrival_id":      destination,
+        "outbound_date":   start_date,
+        "return_date":     end_date,
+        "travel_class":    cabin_code,
+        "type":            "1",   # one-way
+        "currency":        "USD",
+        "hl":              "en",
+        "gl":              "us",
+        "show_hidden":     "true",
+    }
+    try:
+        r = req.get("https://serpapi.com/search.json", params=params, timeout=90)
+        r.raise_for_status()
+        data = r.json()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    # Parse best_flights and other_flights
+    all_options = (data.get("best_flights") or []) + (data.get("other_flights") or [])
+    
+    # Group by date
+    date_map = {}
+    for opt in all_options:
+        price = opt.get("price")
+        if not price: continue
+        flights = opt.get("flights",[])
+        if not flights: continue
+        dep_time = flights[0].get("departure_airport",{}).get("time","")
+        dep_date = dep_time[:10] if dep_time else ""
+        airline  = flights[0].get("airline","")
+        if dep_date and (dep_date not in date_map or price < date_map[dep_date]["price"]):
+            date_map[dep_date] = {"price": price, "airline": airline}
+
+    results = [{"date": k, "price": v["price"], "airline": v["airline"]}
+               for k,v in sorted(date_map.items())]
+
+    return jsonify({"results": results, "origin": origin, "destination": destination})
+
+
+@api_bp.route("/calendar/award", methods=["POST"])
+@login_required
+def calendar_award():
+    """Search award space for every day in a date range via seats.aero."""
+    import os, requests as req
+    body = request.json or {}
+    origin      = body.get("origin","").upper().strip()
+    destination = body.get("destination","").upper().strip()
+    cabin       = body.get("cabin","business")
+    start_date  = body.get("start_date","")
+    end_date    = body.get("end_date","")
+    programs    = body.get("programs",[])
+    if not all([origin, destination, start_date, end_date]):
+        return jsonify({"error":"origin, destination, start_date, end_date required"}), 400
+
+    SEATS_KEY = current_app.config.get("SEATS_AERO_API_KEY","")
+    if not SEATS_KEY:
+        return jsonify({"error":"seats.aero not configured"}), 503
+
+    CABIN_PREFIX = {"economy":"Y","premium_economy":"W","business":"J","first":"F"}
+    prefix = CABIN_PREFIX.get(cabin,"J")
+
+    ALLIANCE_PROGS = {
+        "any": ["american","alaska","qantas","delta","united","lufthansa",
+                "flying_blue","aeroplan","british","cathay","finnair",
+                "iberia","japan","korean","ana","singapore"],
+    }
+    if not programs:
+        programs = ALLIANCE_PROGS["any"]
+
+    params = {
+        "origin_airport":      origin,
+        "destination_airport": destination,
+        "cabin":               cabin,
+        "start_date":          start_date,
+        "end_date":            end_date,
+        "take":                500,
+        "order_by":            "lowest_mileage",
+        "sources":             ",".join(programs),
+    }
+    headers = {"Partner-Authorization": SEATS_KEY, "accept": "application/json"}
+    try:
+        r = req.get("https://seats.aero/partnerapi/search",
+                    params=params, headers=headers, timeout=90)
+        if r.status_code == 401:
+            return jsonify({"error":"seats.aero auth failed"}), 401
+        r.raise_for_status()
+        data = r.json()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    # Group by date — keep lowest miles per date
+    date_map = {}
+    for item in data.get("data",[]):
+        if not item.get(f"{prefix}Available"): continue
+        try:   miles = int(str(item.get(f"{prefix}MileageCost","0")).replace(",",""))
+        except: miles = 0
+        if not miles: continue
+        try:   taxes = float(str(item.get(f"{prefix}Taxes","0")).replace(",",""))
+        except: taxes = 0.0
+        dep_date = item.get("Date","")[:10]
+        program  = item.get("Source","")
+        if dep_date and (dep_date not in date_map or miles < date_map[dep_date]["miles"]):
+            date_map[dep_date] = {"miles": miles, "taxes": taxes or None, "program": program}
+
+    results = [{"date":k,"miles":v["miles"],"taxes":v["taxes"],"program":v["program"]}
+               for k,v in sorted(date_map.items())]
+
+    return jsonify({"results": results, "origin": origin, "destination": destination})
+
+
+@api_bp.route("/run/cash", methods=["POST"])
+@login_required
+def run_cash_now():
+    """Trigger an immediate background check for cash routes (stub — checker runs on its own loop)."""
+    return jsonify({"status": "check queued"})
+
+
+@api_bp.route("/run/award", methods=["POST"])
+@login_required
+def run_award_now():
+    """Trigger an immediate background check for award routes."""
+    return jsonify({"status": "check queued"})

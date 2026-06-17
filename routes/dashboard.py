@@ -71,3 +71,15 @@ def swu_delete(swu_id):
     db.session.delete(swu); db.session.commit()
     flash("SWU log removed.", "success")
     return redirect(url_for("dashboard.home"))
+
+
+@dashboard_bp.route("/fifth-freedom")
+@login_required
+def fifth_freedom():
+    return render_template("dashboard/fifth_freedom.html")
+
+
+@dashboard_bp.route("/calendar")
+@login_required
+def calendar():
+    return render_template("dashboard/calendar.html")
