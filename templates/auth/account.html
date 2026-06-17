@@ -114,8 +114,12 @@ hr.div{border:none;border-top:1px solid var(--line);margin:16px 0}
         <input type="checkbox" name="notify_sms" {{'checked' if current_user.notify_sms}}>
         SMS alerts (phone must be verified below)
       </div>
+      <div class="check-row">
+        <input type="checkbox" name="notify_whatsapp" {{'checked' if current_user.notify_whatsapp}}>
+        WhatsApp alerts (uses same verified phone number)
+      </div>
       <label class="flbl">Telegram chat ID</label>
-      <input type="text" name="telegram_chat_id" placeholder="e.g. 8844969337"
+      <input type="text" name="telegram_chat_id" placeholder="e.g. 1234567890"
              value="{{current_user.telegram_chat_id or ''}}">
       {% endif %}
       <hr class="div">
@@ -136,7 +140,7 @@ hr.div{border:none;border-top:1px solid var(--line);margin:16px 0}
       <label class="flbl">Phone number (E.164 format e.g. +19725551234)</label>
       <input type="tel" name="phone_number"
              value="{{current_user.phone_number or ''}}"
-             placeholder="+19725551234">
+             placeholder="+18888675309">
       <button class="btn sm" type="submit">Send verification code</button>
     </form>
     {% if session.get('phone_verify_code') %}
