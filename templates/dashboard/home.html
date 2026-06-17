@@ -381,7 +381,12 @@ textarea{resize:vertical;min-height:60px}
         <div id="itinList"></div>
         <div id="itinForm" style="display:none">
           <hr class="div">
-          <div style="margin-bottom:10px"><label class="flbl">Label</label><input type="text" id="newLabel" placeholder="e.g. DFW-NRT // ICN-ORD"></div>
+          <div style="margin-bottom:12px">
+            <label class="flbl">Label</label>
+            <input type="text" id="newLabel" placeholder="e.g. DFW→LHR Business Oneworld">
+          </div>
+
+          <!-- Alliance & Cabin -->
           <div style="margin-bottom:10px">
             <label class="flbl">Alliance</label>
             <div class="toggle-group" id="alliGrp">
@@ -403,7 +408,7 @@ textarea{resize:vertical;min-height:60px}
             </div>
             <div id="airTags" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
           </div>
-          <div style="margin-bottom:10px">
+          <div style="margin-bottom:12px">
             <label class="flbl">Cabin</label>
             <div class="toggle-group" id="cabGrp">
               <button class="tgl" data-v="economy" onclick="pickC(this)">Economy</button>
@@ -412,13 +417,107 @@ textarea{resize:vertical;min-height:60px}
               <button class="tgl" data-v="first" onclick="pickC(this)">First</button>
             </div>
           </div>
-          <div id="slices"></div>
-          <div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn sm" onclick="addSlice()">+ Add leg</button></div>
-          <div style="display:flex;gap:8px">
-            <button class="btn gold" onclick="submitItin()">Add itinerary</button>
+
+          <!-- Trip type tabs -->
+          <div style="margin-bottom:14px">
+            <label class="flbl">Trip type</label>
+            <div class="toggle-group" id="cashTripGrp">
+              <button class="tgl on" data-v="oneway" onclick="setCashTrip('oneway')">One way</button>
+              <button class="tgl" data-v="roundtrip" onclick="setCashTrip('roundtrip')">Round trip</button>
+              <button class="tgl" data-v="multicity" onclick="setCashTrip('multicity')">Multi-city</button>
+            </div>
+          </div>
+
+          <!-- ONE WAY -->
+          <div id="tripOneway">
+            <div class="form-row" style="margin-bottom:10px;align-items:flex-end">
+              <div>
+              <label class="flbl">From</label>
+              <div class="ap-wrap">
+                <input type="text" id="ow_from" class="ap-input" placeholder="DFW"
+                       autocomplete="off" oninput="apSearch(this)" onfocus="apSearch(this)"
+                       onblur="setTimeout(()=>apHide(this),200)" maxlength="4" style="width:100%">
+                <div class="ap-drop" style="display:none"></div>
+              </div>
+            </div>
+              <div>
+              <label class="flbl">To</label>
+              <div class="ap-wrap">
+                <input type="text" id="ow_to" class="ap-input" placeholder="LHR"
+                       autocomplete="off" oninput="apSearch(this)" onfocus="apSearch(this)"
+                       onblur="setTimeout(()=>apHide(this),200)" maxlength="4" style="width:100%">
+                <div class="ap-drop" style="display:none"></div>
+              </div>
+            </div>
+              <div>
+              <label class="flbl">Departure</label>
+              <input type="hidden" id="ow_outDateVal">
+              <div style="display:flex;gap:6px">
+                <select id="ow_outMon" class="date-sel" style="flex:2" onchange="updateCashDate('ow_out')"><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06" selected>June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
+                <select id="ow_outDay" class="date-sel" style="flex:1.2" onchange="updateCashDate('ow_out')"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17" selected>17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+                <select id="ow_outYr" class="date-sel" style="flex:1.4" onchange="updateCashDate('ow_out')"><option value="2026">2026</option><option value="2027" selected>2027</option><option value="2028">2028</option></select>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <!-- ROUND TRIP -->
+          <div id="tripRoundtrip" style="display:none">
+            <div class="form-row" style="margin-bottom:10px;align-items:flex-end">
+              <div>
+              <label class="flbl">From</label>
+              <div class="ap-wrap">
+                <input type="text" id="rt_from" class="ap-input" placeholder="DFW"
+                       autocomplete="off" oninput="apSearch(this)" onfocus="apSearch(this)"
+                       onblur="setTimeout(()=>apHide(this),200)" maxlength="4" style="width:100%">
+                <div class="ap-drop" style="display:none"></div>
+              </div>
+            </div>
+              <div>
+              <label class="flbl">To (auto-fills return)</label>
+              <div class="ap-wrap">
+                <input type="text" id="rt_to" class="ap-input" placeholder="LHR"
+                       autocomplete="off" oninput="apSearch(this)" onfocus="apSearch(this)"
+                       onblur="setTimeout(()=>apHide(this),200)" maxlength="4" style="width:100%">
+                <div class="ap-drop" style="display:none"></div>
+              </div>
+            </div>
+              <div>
+              <label class="flbl">Outbound</label>
+              <input type="hidden" id="rt_outDateVal">
+              <div style="display:flex;gap:6px">
+                <select id="rt_outMon" class="date-sel" style="flex:2" onchange="updateCashDate('rt_out')"><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06" selected>June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
+                <select id="rt_outDay" class="date-sel" style="flex:1.2" onchange="updateCashDate('rt_out')"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17" selected>17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+                <select id="rt_outYr" class="date-sel" style="flex:1.4" onchange="updateCashDate('rt_out')"><option value="2026">2026</option><option value="2027" selected>2027</option><option value="2028">2028</option></select>
+              </div>
+            </div>
+              <div>
+              <label class="flbl">Return</label>
+              <input type="hidden" id="rt_retDateVal">
+              <div style="display:flex;gap:6px">
+                <select id="rt_retMon" class="date-sel" style="flex:2" onchange="updateCashDate('rt_ret')"><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06" selected>June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
+                <select id="rt_retDay" class="date-sel" style="flex:1.2" onchange="updateCashDate('rt_ret')"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17" selected>17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+                <select id="rt_retYr" class="date-sel" style="flex:1.4" onchange="updateCashDate('rt_ret')"><option value="2026">2026</option><option value="2027" selected>2027</option><option value="2028">2028</option></select>
+              </div>
+            </div>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:10px;margin-top:-4px">
+              Return leg auto-fills as LHR → DFW when you enter the To airport.
+            </div>
+          </div>
+
+          <!-- MULTI-CITY -->
+          <div id="tripMulticity" style="display:none">
+            <div id="mcLegs"></div>
+            <button class="btn sm" onclick="addMCLeg()" style="margin-bottom:12px">+ Add leg</button>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="btn gold" id="itinSubmitBtn" onclick="submitItin()">Add itinerary</button>
             <button class="btn" onclick="hideItinForm()">Cancel</button>
           </div>
         </div>
+
         {% if current_user.plan == "free" and current_user.cash_routes|length >= 1 %}
         <div class="upsell" style="margin-top:12px">
           <p>Free plan = 1 route. <strong>Pro</strong> gives you 10. <strong>Elite</strong> is unlimited.</p>
@@ -610,7 +709,15 @@ textarea{resize:vertical;min-height:60px}
               <div><label class="flbl">Flight #</label><input type="text" name="flight_number" placeholder="70" maxlength="8" required></div>
               <div><label class="flbl">From</label><input type="text" name="origin" placeholder="DFW" maxlength="4" required></div>
               <div><label class="flbl">To</label><input type="text" name="destination" placeholder="LHR" maxlength="4" required></div>
-              <div><label class="flbl">Date</label><input type="date" name="flight_date" required></div>
+              <div>
+                <label class="flbl">Date</label>
+                <input type="hidden" name="flight_date" id="swuDateVal">
+                <div style="display:flex;gap:6px">
+                  <select id="swuMon" class="date-sel" style="flex:2" onchange="updateSwuDate()"><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06" selected>June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
+                  <select id="swuDay" class="date-sel" style="flex:1.2" onchange="updateSwuDate()"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17" selected>17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+                  <select id="swuYr" class="date-sel" style="flex:1.4" onchange="updateSwuDate()"><option value="2026">2026</option><option value="2027" selected>2027</option><option value="2028">2028</option></select>
+                </div>
+              </div>
             </div>
             <div class="form-row">
               <div>
@@ -634,7 +741,7 @@ textarea{resize:vertical;min-height:60px}
               <textarea name="notes" placeholder="Called elite line, agent said 3 ahead on waitlist..."></textarea>
             </div>
             <div style="display:flex;gap:8px">
-              <button class="btn gold" type="submit">Log flight</button>
+              <button class="btn gold" type="button" onclick="submitSWU()">Log flight</button>
               <button class="btn" type="button" onclick="this.closest('#swuForm').style.display='none';document.getElementById('showSWUBtn').style.display=''">Cancel</button>
             </div>
           </form>
@@ -701,58 +808,60 @@ function saveAwardTarget(routeId){
 function renderSWUPasses(){
   const el=document.getElementById('swuPasses');
   if(!el)return;
-  // Read SWU data from server-rendered table rows
-  const rows=[...document.querySelectorAll('.swu-table tbody tr')];
-  if(!rows.length){el.innerHTML='';return;}
+  // Read from Jinja-injected JSON data
+  const dataEl=document.getElementById('swuData');
+  if(!dataEl){el.innerHTML='';return;}
+  let swuLogs=[];
+  try{swuLogs=JSON.parse(dataEl.textContent);}catch(e){el.innerHTML='';return;}
+  if(!swuLogs.length){el.innerHTML='';return;}
+
+  const CABIN_L={economy:"Economy",premium_economy:"Prem Eco",business:"Business",first:"First"};
   const STATUS_COLOR={pending:'swu-c-pending',requested:'swu-c-requested',
     waitlisted:'swu-c-waitlisted',cleared:'swu-c-cleared',
     expired:'swu-c-expired',denied:'swu-c-denied'};
-  el.innerHTML=rows.map(row=>{
-    const cells=row.querySelectorAll('td');
-    if(cells.length<5)return'';
-    const flight=cells[0]?.textContent?.trim()||'';
-    const cabin=cells[1]?.textContent?.trim()||'Business';
-    const statusSel=cells[2]?.querySelector('select');
-    const status=statusSel?.value||cells[2]?.textContent?.trim()||'pending';
-    const awardCell=cells[3]?.textContent?.trim()||'';
-    const hasSpace=awardCell.includes('Open')||awardCell.includes('mi');
-    const notes=cells[4]?.textContent?.trim()||'';
-    // Parse flight string: "AA70 DFW→LHR 2026-03-15"
-    const parts=flight.split(' ');
-    const flightNum=parts[0]||flight;
-    const route=parts[1]||'';
-    const date=parts[2]||'';
-    const [orig,dest]=(route||'').split('→');
-    const sc=STATUS_COLOR[status]||'swu-c-pending';
-    const statusLabel=status.charAt(0).toUpperCase()+status.slice(1);
+
+  el.innerHTML=swuLogs.map(s=>{
+    const sc=STATUS_COLOR[s.status]||'swu-c-pending';
+    const statusLabel=s.status.charAt(0).toUpperCase()+s.status.slice(1);
+    const cabin=CABIN_L[s.cabin]||s.cabin;
+    const hasSpace=s.space_open;
+    const isCleared=s.status==='cleared';
+    // Find airline name from our AIRLINES array
+    const alObj=AIRLINES.find(a=>a.code===s.airline);
+    const airlineName=alObj?alObj.name:s.airline;
     return`<div class="pass swu">
       <div class="pass-top">
-        <div class="pass-airline" style="color:#c47af5">SWU Upgrade Request ✦ ${flightNum}</div>
+        <div class="pass-airline" style="color:#c47af5">${airlineName} ✦ ${s.airline}${s.flight_number}</div>
         <div class="pass-badges">
           <span class="badge" style="color:#c47af5;border-color:rgba(196,122,245,.3)">${cabin}</span>
           ${hasSpace?'<span class="badge" style="color:#22c55e;border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.1);animation:glow-green 1.5s infinite">🟢 Award Space Open!</span>':''}
+          ${isCleared?'<span class="badge" style="color:#22c55e;border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.1)">✓ Cleared!</span>':''}
         </div>
         <div class="pass-route">
-          <div><div class="pass-iata">${orig||'???'}</div><div class="pass-lbl">origin</div></div>
+          <div><div class="pass-iata">${s.origin}</div><div class="pass-lbl">origin</div></div>
           <div class="pass-arrow" style="color:#c47af5">——→</div>
-          <div style="text-align:right"><div class="pass-iata">${dest||'???'}</div><div class="pass-lbl">destination</div></div>
+          <div style="text-align:right"><div class="pass-iata">${s.destination}</div><div class="pass-lbl">destination</div></div>
         </div>
-        <div class="chips"><span class="chip" style="color:#c47af5;border-color:rgba(196,122,245,.2)">${date}</span></div>
+        <div class="chips">
+          <span class="chip" style="color:#c47af5;border-color:rgba(196,122,245,.2)">${s.flight_date}</span>
+        </div>
       </div>
       <div class="pass-tear"><div class="hole l"></div><div class="hole r"></div></div>
       <div class="pass-btm">
         <div class="pass-plbl" style="color:#c47af5">upgrade status</div>
-        <div class="pass-swu-status ${sc}">${statusLabel}</div>
+        <div class="pass-swu-status ${sc} ${isCleared?'':''}">
+          ${isCleared?'✓ CLEARED':''}${!isCleared?statusLabel:''}
+        </div>
         <div class="pass-meta">
-          <div class="pass-detail">${notes||awardCell||'Monitoring award space'}</div>
-          <div style="display:flex;align-items:center">
-            <span class="swu-monitor-dot ${hasSpace?'dot-active':'dot-inactive'}"></span>
-            <span style="font-size:11px;color:var(--muted)">${hasSpace?'Space open!':'Monitoring'}</span>
+          <div class="pass-detail">${s.notes||airlineName+' elite line'}</div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <span class="swu-monitor-dot ${hasSpace?'dot-on':'dot-off'}"></span>
+            <span style="font-size:11px;color:var(--muted)">${s.last_miles&&s.last_miles>0?s.last_miles.toLocaleString()+' mi open':(hasSpace?'Space open!':'Monitoring')}</span>
           </div>
         </div>
       </div>
-    </div>`
-  }).filter(Boolean).join('');
+    </div>`;
+  }).join('');
 }
 
 function renderAwardPasses(routes,hist){
@@ -970,68 +1079,9 @@ function removeAir(c){customAirlines=customAirlines.filter(x=>x!==c);renderAirTa
 function renderAirTags(){const w=$("#airWrap");w.querySelectorAll(".a-tag").forEach(t=>t.remove());const i=$("#airInp");customAirlines.forEach(c=>{const t=document.createElement("div");t.className="a-tag";t.innerHTML=`${c}<button onclick="removeAir('${c}')">×</button>`;w.insertBefore(t,i);});}
 
 // ── Itin form ────────────────────────────────────────────────────────────────
-let sc=0;
-function showItinForm(){
-  var f=document.getElementById("itinForm");
-  if(f){f.style.display="block";}
-  if(!sc)addSlice();selA="oneworld";selC="business";customAirlines=[];$("#alliGrp .tgl").forEach(b=>b.classList.toggle("on",b.dataset.v==="oneworld"));$("#cabGrp .tgl").forEach(b=>b.classList.toggle("on",b.dataset.v==="business"));$("#customWrap").style.display="none";renderAirTags();}
-function hideItinForm(){document.getElementById('itinForm').style.display='none';var b=document.getElementById('showItinBtn');if(b)b.style.display='';document.getElementById('slices').innerHTML='';document.getElementById('newLabel').value='';sc=0;customAirlines=[];}
-function addSlice(){sc++;$("#slices").insertAdjacentHTML("beforeend",`<div class="slice-block" id="sl${sc}">
-  <button class="slice-rm" onclick="this.closest('.slice-block').remove()">×</button>
-  <div class="form-row">
-    <div>
-      <label class="flbl">From</label>
-      <div class="ap-wrap">
-        <input type="text" class="sf ap-input" placeholder="City or code…" autocomplete="off" oninput="apSearch(this)" onfocus="apSearch(this)" onblur="setTimeout(()=>apHide(this),200)">
-        <div class="ap-drop" style="display:none"></div>
-      </div>
-    </div>
-    <div>
-      <label class="flbl">To</label>
-      <div class="ap-wrap">
-        <input type="text" class="st ap-input" placeholder="City or code…" autocomplete="off" oninput="apSearch(this)" onfocus="apSearch(this)" onblur="setTimeout(()=>apHide(this),200)">
-        <div class="ap-drop" style="display:none"></div>
-      </div>
-    </div>
-    <div>
-      <label class="flbl">Date</label>
-      <div class="date-selects" style="display:flex;gap:4px">
-        <select class="sd-m" style="flex:1.2"><option value="">Month</option>
-          <option value="01">Jan</option><option value="02">Feb</option>
-          <option value="03">Mar</option><option value="04">Apr</option>
-          <option value="05">May</option><option value="06">Jun</option>
-          <option value="07">Jul</option><option value="08">Aug</option>
-          <option value="09">Sep</option><option value="10">Oct</option>
-          <option value="11">Nov</option><option value="12">Dec</option>
-        </select>
-        <select class="sd-d" style="flex:1">${Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}">${i+1}</option>`).join('')}</select>
-        <select class="sd-y" style="flex:1.2">['2026','2027','2028'].map((y)=>{const sel=y==='2027'?'selected':'';return`<option value="${y}" ${sel}>${y}</option>`;}).join('')</select>
-      </div>
-    </div>
-  </div>
-</div>`);}
-async function submitItin(){
-  const label=$("#newLabel").value.trim();
-  const slices=[...document.querySelectorAll("#slices .slice-block")].map(b=>{
-    const m=b.querySelector(".sd-m")?.value;
-    const d=b.querySelector(".sd-d")?.value;
-    const y=b.querySelector(".sd-y")?.value;
-    const date=(y&&m&&d)?`${y}-${m}-${d}`:"";
-    return{departure_id:b.querySelector(".sf").value.toUpperCase().trim(),
-           arrival_id:b.querySelector(".st").value.toUpperCase().trim(),date};
-  }).filter(s=>s.departure_id&&s.arrival_id&&s.date);
-  if(!label||!slices.length){toast("Add a label and at least one leg");return}
-  const airlines=selA==="custom"?cashAirlines:[];
-  const res=await jsend("/api/cash/routes","POST",{label,slices,alliance:selA,airlines,cabin:selC});
-  if(res.error){toast("⚠ "+res.error,4000);return}
-  hideItinForm();
-  toast("Itinerary added — running check now…");
-  loadAll();
-  setTimeout(()=>{jsend("/api/run/cash","POST").then(()=>setTimeout(loadAll,32000));},800);
-}
-async function delItin(id){await jsend("/api/cash/routes/"+id,"DELETE");toast("Removed");loadAll();}
+// showItinForm replaced below
+// hideItinForm replaced below
 
-// ── Award form ────────────────────────────────────────────────────────────────
 function showAwardForm(){const el=$("#awardForm");if(el)el.style.display="block";}
 function hideAwardForm(){const el=$("#awardForm");if(el){el.style.display="none";["aLabel","aFrom","aTo","aDate","aMaxMiles"].forEach(id=>{const e=$("#"+id);if(e)e.value="";});if($("#aDirect"))$("#aDirect").checked=false;}}
 async function submitAward(){
@@ -1049,6 +1099,183 @@ async function submitAward(){
 async function delAward(id){await jsend("/api/award/routes/"+id,"DELETE");toast("Removed");loadAll();}
 
 // Per-route targets used instead of global target
+
+// ── Cash itinerary trip type ──────────────────────────────────────────────────
+let cashTrip = 'oneway';
+let mcCount = 0;
+
+function setCashTrip(type){
+  cashTrip = type;
+  document.getElementById('cashTripGrp').querySelectorAll('.tgl').forEach(b=>b.classList.toggle('on', b.dataset.v===type));
+  document.getElementById('tripOneway').style.display    = type==='oneway'    ? '' : 'none';
+  document.getElementById('tripRoundtrip').style.display = type==='roundtrip' ? '' : 'none';
+  document.getElementById('tripMulticity').style.display = type==='multicity' ? '' : 'none';
+  if(type==='multicity' && document.querySelectorAll('#mcLegs .slice-block').length===0){
+    addMCLeg(); addMCLeg(); // start with 2 legs
+  }
+}
+
+function addMCLeg(){
+  mcCount++;
+  const leg = `<div class="slice-block" id="mc_${mcCount}">
+  <button class="slice-rm" onclick="this.closest('.slice-block').remove();updateMCNumbers()" style="position:absolute;top:6px;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:17px">×</button>
+  <div class="form-row" style="align-items:flex-end">
+    <div>
+      <label class="flbl">From</label>
+      <div class="ap-wrap">
+        <input type="text" class="sf ap-input" placeholder="City or code…" autocomplete="off"
+               oninput="apSearch(this)" onfocus="apSearch(this)"
+               onblur="setTimeout(()=>apHide(this),200)" maxlength="4">
+        <div class="ap-drop" style="display:none"></div>
+      </div>
+    </div>
+    <div>
+      <label class="flbl">To</label>
+      <div class="ap-wrap">
+        <input type="text" class="st ap-input" placeholder="City or code…" autocomplete="off"
+               oninput="apSearch(this)" onfocus="apSearch(this)"
+               onblur="setTimeout(()=>apHide(this),200)" maxlength="4">
+        <div class="ap-drop" style="display:none"></div>
+      </div>
+    </div>
+    <div>
+      <label class="flbl">Date</label>
+      <input type="hidden" class="sd">
+      <div style="display:flex;gap:6px">
+        <select class="sd-m date-sel" style="flex:2" onchange="updateSliceDays(this)">${['','January','February','March','April','May','June','July','August','September','October','November','December'].map((m,i)=>i===0?`<option value=''>Month</option>`:`<option value='${String(i).padStart(2,'0')}' ${i===6?'selected':''}>${m}</option>`).join('')}</select>
+        <select class="sd-d date-sel" style="flex:1.2">${Array.from({length:31},(_,i)=>`<option value='${String(i+1).padStart(2,'0')}' ${i+1===17?'selected':''}>${i+1}</option>`).join('')}</select>
+        <select class="sd-y date-sel" style="flex:1.4">${[2026,2027,2028].map(y=>`<option value='${y}' ${y===2027?'selected':''}>${y}</option>`).join('')}</select>
+      </div>
+    </div>
+  </div>
+</div>`;
+  document.getElementById('mcLegs').insertAdjacentHTML('beforeend', leg);
+  updateMCNumbers();
+}
+
+function updateMCNumbers(){
+  document.querySelectorAll('#mcLegs .slice-block').forEach((b,i)=>{
+    const lbl = b.querySelector('.flbl');
+    if(lbl && lbl.textContent==='From') lbl.textContent = 'From'; // keep as-is
+  });
+}
+
+function updateCashDate(prefix){
+  const m = document.getElementById(prefix+'Mon')?.value;
+  const d = document.getElementById(prefix+'Day')?.value;
+  const y = document.getElementById(prefix+'Yr')?.value;
+  const val = document.getElementById(prefix+'DateVal');
+  if(val) val.value = (m&&d&&y) ? `${y}-${m}-${d}` : '';
+  // update days in month
+  if(m&&y){
+    const dayEl = document.getElementById(prefix+'Day');
+    if(!dayEl) return;
+    const daysInMonth = new Date(parseInt(y),parseInt(m),0).getDate();
+    const curDay = parseInt(dayEl.value)||1;
+    let opts = '<option value="">Day</option>';
+    for(let i=1;i<=daysInMonth;i++){
+      opts += `<option value="${String(i).padStart(2,'0')}" ${i===curDay?'selected':''}>${i}</option>`;
+    }
+    dayEl.innerHTML = opts;
+  }
+}
+
+// Auto-fill return airport for round trip
+document.addEventListener('change', function(e){
+  if(e.target && e.target.id==='rt_to'){
+    // fill return from = rt_to value, return to = rt_from value
+    // This is handled by the ap-input blur — we check after a brief delay
+  }
+});
+
+// Watch rt_to for changes to auto-fill return leg label
+function checkRTAutoFill(){
+  const fromEl = document.getElementById('rt_from');
+  const toEl   = document.getElementById('rt_to');
+  if(fromEl && toEl && toEl.value.length===3){
+    // Show auto-fill confirmation in the label
+    const note = document.getElementById('rtAutoNote');
+    if(note) note.textContent = `Return: ${toEl.value} → ${fromEl.value||'???'}`;
+  }
+}
+setInterval(checkRTAutoFill, 500);
+
+function showItinForm(){
+  document.getElementById('itinForm').style.display='block';
+  const btn=document.getElementById('showItinBtn');
+  if(btn)btn.style.display='none';
+  // reset to one way
+  setCashTrip('oneway');
+  selA='oneworld'; selC='business'; cashAirlines=[];
+  document.getElementById('alliGrp').querySelectorAll('.tgl').forEach(b=>b.classList.toggle('on',b.dataset.v==='oneworld'));
+  document.getElementById('cabGrp').querySelectorAll('.tgl').forEach(b=>b.classList.toggle('on',b.dataset.v==='business'));
+  document.getElementById('customWrap').style.display='none';
+  renderAirTags();
+}
+
+function hideItinForm(){
+  document.getElementById('itinForm').style.display='none';
+  const btn=document.getElementById('showItinBtn');
+  if(btn)btn.style.display='';
+  document.getElementById('newLabel').value='';
+  document.getElementById('mcLegs').innerHTML='';
+  mcCount=0; cashAirlines=[];
+  setCashTrip('oneway');
+}
+
+async function submitItin(){
+  const label = document.getElementById('newLabel').value.trim();
+  if(!label){toast('Add a label first');return;}
+  let slices = [];
+
+  if(cashTrip==='oneway'){
+    const from = document.getElementById('ow_from').value.toUpperCase().trim();
+    const to   = document.getElementById('ow_to').value.toUpperCase().trim();
+    const date = document.getElementById('ow_outDateVal').value || buildDate('ow_out');
+    if(!from||!to||!date){toast('Fill in From, To, and Date');return;}
+    slices = [{departure_id:from, arrival_id:to, date}];
+
+  } else if(cashTrip==='roundtrip'){
+    const from    = document.getElementById('rt_from').value.toUpperCase().trim();
+    const to      = document.getElementById('rt_to').value.toUpperCase().trim();
+    const outDate = document.getElementById('rt_outDateVal').value || buildDate('rt_out');
+    const retDate = document.getElementById('rt_retDateVal').value || buildDate('rt_ret');
+    if(!from||!to||!outDate||!retDate){toast('Fill in all fields for both legs');return;}
+    slices = [
+      {departure_id:from, arrival_id:to,   date:outDate},
+      {departure_id:to,   arrival_id:from, date:retDate},
+    ];
+
+  } else {
+    // multi-city
+    slices = [...document.querySelectorAll('#mcLegs .slice-block')].map(b=>{
+      const from = b.querySelector('.sf')?.value.toUpperCase().trim();
+      const to   = b.querySelector('.st')?.value.toUpperCase().trim();
+      const sdm  = b.querySelector('.sd-m')?.value;
+      const sdd  = b.querySelector('.sd-d')?.value;
+      const sdy  = b.querySelector('.sd-y')?.value;
+      const date = (sdy&&sdm&&sdd) ? `${sdy}-${sdm}-${sdd}` : '';
+      return {departure_id:from, arrival_id:to, date};
+    }).filter(s=>s.departure_id&&s.arrival_id&&s.date);
+    if(slices.length<2){toast('Add at least 2 legs');return;}
+  }
+
+  const airlines = selA==='custom' ? cashAirlines : [];
+  const res = await jsend('/api/cash/routes','POST',{label,slices,alliance:selA,airlines,cabin:selC});
+  if(res.error){toast('⚠ '+res.error, 4000);return;}
+  hideItinForm();
+  toast('Itinerary added — running check now…');
+  loadAll();
+  setTimeout(()=>{jsend('/api/run/cash','POST').then(()=>setTimeout(loadAll,32000));},800);
+}
+
+function buildDate(prefix){
+  const m=document.getElementById(prefix+'Mon')?.value;
+  const d=document.getElementById(prefix+'Day')?.value;
+  const y=document.getElementById(prefix+'Yr')?.value;
+  return (m&&d&&y)?`${y}-${m}-${d}`:'';
+}
+
 
 // SWU form
 function showSWUForm(){const el=$("#swuForm");if(el)el.style.display="block";}
@@ -1224,6 +1451,49 @@ function updateSliceDays(monSel){
 
 // Override submitItin to use cashAirlines
 const _origSubmitItin = submitItin;
+
+
+
+function submitSWU(){
+  const airVal=document.getElementById('swuAirlineVal')?.value;
+  const flNum=document.querySelector('[name="flight_number"]')?.value;
+  const orig=document.querySelector('[name="origin"]')?.value;
+  const dest=document.querySelector('[name="destination"]')?.value;
+  const dateVal=document.getElementById('swuDateVal')?.value;
+  if(!airVal){toast('Please select an airline from the dropdown');return;}
+  if(!flNum||!orig||!dest){toast('Fill in flight number, origin and destination');return;}
+  if(!dateVal){
+    updateSwuDate();
+    const v=document.getElementById('swuDateVal')?.value;
+    if(!v){toast('Please select a date');return;}
+  }
+  document.querySelector('[name="airline"]')?.form?.submit();
+}
+
+function updateSwuDate(){
+  const m=document.getElementById('swuMon')?.value;
+  const d=document.getElementById('swuDay')?.value;
+  const y=document.getElementById('swuYr')?.value;
+  const val=document.getElementById('swuDateVal');
+  if(val&&m&&d&&y) val.value=`${y}-${m}-${d}`;
+  // Also update days in month
+  if(m&&y){
+    const dayEl=document.getElementById('swuDay');
+    const daysInMonth=new Date(parseInt(y),parseInt(m),0).getDate();
+    const curDay=parseInt(dayEl.value)||1;
+    let opts='<option value="">Day</option>';
+    for(let i=1;i<=daysInMonth;i++){
+      const sel=i===curDay?' selected':'';
+      opts+=`<option value="${String(i).padStart(2,'0')}"${sel}>${i}</option>`;
+    }
+    dayEl.innerHTML=opts;
+  }
+}
+// Init SWU date on load
+document.addEventListener('DOMContentLoaded',()=>{
+  updateSwuDate();
+  // Also auto-fill swu airline val if already typed
+});
 
 loadAll();
 setInterval(loadAll,5*60*1000);
@@ -1526,4 +1796,22 @@ function apHide(inp){
 }
 
 </script>
+
+<script id="swuData" type="application/json">
+[{% for swu in swu_logs %}{
+  "id":{{swu.id}},
+  "airline":"{{swu.airline}}",
+  "flight_number":"{{swu.flight_number}}",
+  "origin":"{{swu.origin}}",
+  "destination":"{{swu.destination}}",
+  "flight_date":"{{swu.flight_date}}",
+  "cabin":"{{swu.cabin_requested}}",
+  "status":"{{swu.swu_status}}",
+  "monitor":{{swu.monitor_award_space|lower}},
+  "space_open":{{swu.last_space_available|lower}},
+  "last_miles":{{swu.last_miles or 0}},
+  "notes":"{{swu.notes or ''|replace('"','\"')}}"
+}{% if not loop.last %},{% endif %}{% endfor %}]
+</script>
+
 </body></html>
