@@ -377,7 +377,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="card">
         <div class="card-hdr">
           <div class="card-title">Cash itineraries</div>
-          <button class="btn sm" id="showItinBtn" onclick="document.getElementById('itinForm').style.display='block';document.getElementById('showItinBtn').style.display='none';if(!sc)addSlice();">+ Add</button>
+          <button class="btn sm" id="showItinBtn" onclick="openItinForm()">+ Add</button>
         </div>
         <div id="itinList"></div>
         <div id="itinForm" style="display:none">
@@ -656,7 +656,8 @@ textarea{resize:vertical;min-height:60px}
       <div class="card">
         <div class="card-hdr">
           <div class="card-title">SWU upgrade log</div>
-          <button class="btn sm" id="showSWUBtn" onclick="document.getElementById('swuForm').style.display='block';this.style.display='none'">+ Log flight</button>
+          <button class="btn sm" id="showSWUBtn" onclick="document.getElementById('swuForm').style.display='block';this.style.display='none';
+    if(HOME_AIRPORT){const o=document.querySelector('[name="origin"]');if(o&&!o.value)o.value=HOME_AIRPORT;}">+ Log flight</button>
         </div>
         {% if swu_logs %}
         <table class="swu-table">
@@ -762,6 +763,12 @@ textarea{resize:vertical;min-height:60px}
 
   </div>
 </div>
+
+
+<script>
+// Home airport from user profile
+const HOME_AIRPORT = "{{current_user.home_airport or ''}}";
+</script>
 
 <div id="toast"></div></div>
 
@@ -912,6 +919,220 @@ function renderAwardPasses(routes,hist){
         </div>
       </div>
     </div>`}).join('');
+}
+
+
+function openItinForm(){
+  document.getElementById('itinForm').style.display='block';
+  const btn=document.getElementById('showItinBtn');
+  if(btn)btn.style.display='none';
+  setCashTrip('oneway');
+  selA='oneworld'; selC='business'; cashAirlines=[];
+  const ag=document.getElementById('alliGrp');
+  if(ag)ag.querySelectorAll('.tgl').forEach(b=>b.classList.toggle('on',b.dataset.v==='oneworld'));
+  const cg=document.getElementById('cabGrp');
+  if(cg)cg.querySelectorAll('.tgl').forEach(b=>b.classList.toggle('on',b.dataset.v==='business'));
+  const cw=document.getElementById('customWrap');
+  if(cw)cw.style.display='none';
+  renderAirTags();
+  if(HOME_AIRPORT){
+    const owf=document.getElementById('ow_from');
+    if(owf&&!owf.value)owf.value=HOME_AIRPORT;
+    const rtf=document.getElementById('rt_from');
+    if(rtf&&!rtf.value)rtf.value=HOME_AIRPORT;
+  }
+}
+
+function showAwardForm(){
+  const f=document.getElementById('awardForm');
+  if(f)f.style.display='block';
+  if(HOME_AIRPORT){
+    const af=document.getElementById('aFrom');
+    if(af&&!af.value)af.value=HOME_AIRPORT;
+  }
+}
+
+
+// ── Trip type for cash itinerary ─────────────────────────────────────────────
+let cashTrip='oneway', mcCount=0;
+
+function setCashTrip(type){
+  cashTrip=type;
+  const grp=document.getElementById('cashTripGrp');
+  if(grp)grp.querySelectorAll('.tgl').forEach(b=>b.classList.toggle('on',b.dataset.v===type));
+  ['Oneway','Roundtrip','Multicity'].forEach(t=>{
+    const el=document.getElementById('trip'+t);
+    if(el)el.style.display=(t.toLowerCase()===type.replace('_',''))?'':'none';
+  });
+  if(type==='multicity'&&document.querySelectorAll('#mcLegs .slice-block').length===0){
+    addMCLeg();addMCLeg();
+  }
+}
+
+function addMCLeg(){
+  mcCount++;
+  document.getElementById('mcLegs').insertAdjacentHTML('beforeend',`<div class="slice-block" id="mc_${mcCount}" style="position:relative;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:11px 13px;margin-bottom:8px">
+  <button onclick="this.closest('.slice-block').remove()" style="position:absolute;top:6px;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:17px;line-height:1">×</button>
+  <div class="form-row" style="align-items:flex-end">
+    <div><label class="flbl">From</label>
+      <div class="ap-wrap">
+        <input type="text" class="sf ap-input" placeholder="City or code…" autocomplete="off"
+               oninput="apSearch(this)" onfocus="apSearch(this)"
+               onblur="setTimeout(()=>apHide(this),200)" maxlength="4" style="width:100%">
+        <div class="ap-drop" style="display:none"></div>
+      </div>
+    </div>
+    <div><label class="flbl">To</label>
+      <div class="ap-wrap">
+        <input type="text" class="st ap-input" placeholder="City or code…" autocomplete="off"
+               oninput="apSearch(this)" onfocus="apSearch(this)"
+               onblur="setTimeout(()=>apHide(this),200)" maxlength="4" style="width:100%">
+        <div class="ap-drop" style="display:none"></div>
+      </div>
+    </div>
+    <div><label class="flbl">Date</label>
+      <input type="hidden" class="sd">
+      <div style="display:flex;gap:6px">
+        <select class="sd-m date-sel" style="flex:2" onchange="updateSliceDays(this)">${['',...['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']].map((m,i)=>i===0?`<option value=''>Month</option>`:`<option value='${String(i).padStart(2,'0')}' ${i===6?'selected':''}>${m}</option>`).join('')}</select>
+        <select class="sd-d date-sel" style="flex:1.2">${Array.from({length:31},(_,i)=>`<option value='${String(i+1).padStart(2,'0')}' ${i+1===17?'selected':''}>${i+1}</option>`).join('')}</select>
+        <select class="sd-y date-sel" style="flex:1.4">${[2026,2027,2028].map(y=>`<option value='${y}' ${y===2027?'selected':''}>${y}</option>`).join('')}</select>
+      </div>
+    </div>
+  </div>
+</div>`);
+  // Auto-fill home airport on first leg
+  if(HOME_AIRPORT&&mcCount===1){
+    const sf=document.querySelector('#mcLegs .sf');
+    if(sf&&!sf.value)sf.value=HOME_AIRPORT;
+  }
+}
+
+function buildDate(prefix){
+  const m=document.getElementById(prefix+'Mon')?.value;
+  const d=document.getElementById(prefix+'Day')?.value;
+  const y=document.getElementById(prefix+'Yr')?.value;
+  return (m&&d&&y)?`${y}-${m}-${d}`:'';
+}
+
+function updateCashDate(prefix){
+  const val=document.getElementById(prefix+'DateVal');
+  if(val)val.value=buildDate(prefix);
+  const m=document.getElementById(prefix+'Mon')?.value;
+  const y=document.getElementById(prefix+'Yr')?.value;
+  if(m&&y){
+    const dayEl=document.getElementById(prefix+'Day');
+    if(!dayEl)return;
+    const dim=new Date(parseInt(y),parseInt(m),0).getDate();
+    const cur=parseInt(dayEl.value)||1;
+    let opts='<option value="">Day</option>';
+    for(let i=1;i<=dim;i++)opts+=`<option value="${String(i).padStart(2,'0')}" ${i===cur?'selected':''}>${i}</option>`;
+    dayEl.innerHTML=opts;
+  }
+}
+
+async function submitItin(){
+  const label=document.getElementById('newLabel')?.value.trim();
+  if(!label){toast('Add a label first');return;}
+  let slices=[];
+
+  if(cashTrip==='oneway'){
+    const from=document.getElementById('ow_from')?.value.toUpperCase().trim();
+    const to=document.getElementById('ow_to')?.value.toUpperCase().trim();
+    const date=buildDate('ow_out');
+    if(!from||!to){toast('Enter From and To airports');return;}
+    if(!date){toast('Select a departure date');return;}
+    slices=[{departure_id:from,arrival_id:to,date}];
+
+  }else if(cashTrip==='roundtrip'){
+    const from=document.getElementById('rt_from')?.value.toUpperCase().trim();
+    const to=document.getElementById('rt_to')?.value.toUpperCase().trim();
+    const outDate=buildDate('rt_out');
+    const retDate=buildDate('rt_ret');
+    if(!from||!to){toast('Enter From and To airports');return;}
+    if(!outDate||!retDate){toast('Select both outbound and return dates');return;}
+    slices=[
+      {departure_id:from,arrival_id:to,date:outDate},
+      {departure_id:to,arrival_id:from,date:retDate},
+    ];
+
+  }else{
+    slices=[...document.querySelectorAll('#mcLegs .slice-block')].map(b=>{
+      const from=b.querySelector('.sf')?.value.toUpperCase().trim();
+      const to=b.querySelector('.st')?.value.toUpperCase().trim();
+      const m=b.querySelector('.sd-m')?.value;
+      const d=b.querySelector('.sd-d')?.value;
+      const y=b.querySelector('.sd-y')?.value;
+      return{departure_id:from,arrival_id:to,date:(m&&d&&y)?`${y}-${m}-${d}`:''};
+    }).filter(s=>s.departure_id&&s.arrival_id&&s.date);
+    if(slices.length<2){toast('Add at least 2 complete legs');return;}
+  }
+
+  const airlines=selA==='custom'?cashAirlines:[];
+  const res=await jsend('/api/cash/routes','POST',{label,slices,alliance:selA,airlines,cabin:selC});
+  if(res.error){toast('⚠ '+res.error,4000);return;}
+  hideItinForm();
+  toast('Itinerary added — running check now…');
+  loadAll();
+  setTimeout(()=>{jsend('/api/run/cash','POST').then(()=>setTimeout(loadAll,32000));},800);
+}
+
+async function submitAward(){
+  const selectedProgs=[...document.querySelectorAll('#awardForm .prog-check:checked')].map(c=>c.value);
+  if(!selectedProgs.length){toast('Select at least one program');return;}
+  const from=document.getElementById('aFrom')?.value.toUpperCase().trim();
+  const to=document.getElementById('aTo')?.value.toUpperCase().trim();
+  const date=buildDate('a');
+  if(!from||!to){toast('Enter From and To airports');return;}
+  if(!date){toast('Select a date');return;}
+  const label=document.getElementById('aLabel')?.value.trim()||'';
+  const b={
+    label,origin:from,destination:to,date,
+    trip_type:selT,cabin:selAC,alliance:selAA,
+    programs:selectedProgs,
+    max_miles:document.getElementById('aMaxMiles')?.value?parseInt(document.getElementById('aMaxMiles').value):null,
+    only_direct:document.getElementById('aDirect')?.checked||false
+  };
+  const res=await jsend('/api/award/routes','POST',b);
+  if(res.error){toast('⚠ '+res.error,4000);return;}
+  hideAwardForm();
+  toast('Award route added — running check now…');
+  loadAll();
+  setTimeout(()=>{jsend('/api/run/award','POST').then(()=>setTimeout(loadAll,32000));},800);
+}
+
+function hideAwardForm(){
+  const f=document.getElementById('awardForm');
+  if(f)f.style.display='none';
+  ['aLabel','aFrom','aTo','aMaxMiles'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const ad=document.getElementById('aDirect');if(ad)ad.checked=false;
+  selT='one_way';selAC='business';selAA='oneworld';
+  ['tripGrp','aCabGrp','aAlliGrp'].forEach(id=>{
+    const g=document.getElementById(id);
+    if(!g)return;
+    const defaults={tripGrp:'one_way',aCabGrp:'business',aAlliGrp:'oneworld'};
+    g.querySelectorAll('.tgl').forEach(b=>b.classList.toggle('on',b.dataset.v===defaults[id]));
+  });
+}
+
+async function delItin(id){await jsend('/api/cash/routes/'+id,'DELETE');toast('Removed');loadAll();}
+async function delAward(id){await jsend('/api/award/routes/'+id,'DELETE');toast('Removed');loadAll();}
+
+
+async function runCheckNow(){
+  const btn=document.getElementById('checkNowBtn');
+  if(btn){btn.textContent='⏳ Checking…';btn.disabled=true;btn.style.opacity='.6';}
+  toast('Running checks on all your routes…',4000);
+  try{
+    await Promise.all([jsend('/api/run/cash','POST'),jsend('/api/run/award','POST')]);
+    setTimeout(()=>{
+      loadAll();
+      if(btn){btn.textContent='⚡ Check Now';btn.disabled=false;btn.style.opacity='1';}
+      toast('✓ Check complete — results updated');
+    },30000);
+  }catch(e){
+    if(btn){btn.textContent='⚡ Check Now';btn.disabled=false;btn.style.opacity='1';}
+    toast('Check failed — try again');
+  }
 }
 
 async function loadAll(){
