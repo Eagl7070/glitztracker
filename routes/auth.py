@@ -71,6 +71,7 @@ def account():
             current_user.notify_email = "notify_email" in request.form
             current_user.notify_telegram = "notify_telegram" in request.form
             current_user.notify_sms   = "notify_sms" in request.form
+            current_user.notify_whatsapp = "notify_whatsapp" in request.form
             current_user.telegram_chat_id = request.form.get("telegram_chat_id","").strip()
             new_pw = request.form.get("new_password","").strip()
             if new_pw:
