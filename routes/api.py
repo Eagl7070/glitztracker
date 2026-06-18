@@ -417,3 +417,75 @@ def run_award_now():
     thread = threading.Thread(target=do_check, daemon=True)
     thread.start()
     return jsonify({"status": "check started"})
+
+
+@api_bp.route("/explore", methods=["POST"])
+@login_required
+def explore_deals():
+    """Find award deals from an origin or region via seats.aero Bulk Availability."""
+    import requests as req
+    body = request.json or {}
+    origin   = body.get("origin","").upper().strip()
+    cabin    = body.get("cabin","business")
+    max_pts  = body.get("max_miles")
+    programs = body.get("programs",[])
+    region   = body.get("region","")
+
+    SEATS_KEY = current_app.config.get("SEATS_AERO_API_KEY","")
+    if not SEATS_KEY:
+        return jsonify({"error":"seats.aero not configured — add SEATS_AERO_API_KEY"}), 503
+
+    CABIN_PREFIX = {"economy":"Y","premium_economy":"W","business":"J","first":"F"}
+    prefix = CABIN_PREFIX.get(cabin,"J")
+
+    if not programs:
+        programs = ["american","alaska","united","aeroplan","delta","flying_blue",
+                    "british","cathay","lifemiles","virginatlantic","velocity",
+                    "qantas","singapore","ana","emirates","etihad","smiles","azul"]
+
+    headers = {"Partner-Authorization": SEATS_KEY, "accept":"application/json"}
+    all_deals = []
+
+    # Query a few programs via Bulk Availability
+    for prog in programs[:6]:  # cap to stay within daily limits
+        params = {"source": prog, "cabin": cabin, "take": 200,
+                  "order_by": "lowest_mileage"}
+        if origin:
+            params["origin_airport"] = origin
+        try:
+            r = req.get("https://seats.aero/partnerapi/availability",
+                        params=params, headers=headers, timeout=40)
+            if r.status_code != 200:
+                continue
+            data = r.json()
+            for item in data.get("data", []):
+                if not item.get(f"{prefix}Available"): continue
+                try:    miles = int(str(item.get(f"{prefix}MileageCost","0")).replace(",",""))
+                except: miles = 0
+                if not miles: continue
+                if max_pts and miles > int(max_pts): continue
+                try:    taxes = float(str(item.get(f"{prefix}Taxes","0")).replace(",",""))
+                except: taxes = 0.0
+                all_deals.append({
+                    "origin":      item.get("Route",{}).get("OriginAirport","") or item.get("OriginAirport",""),
+                    "destination": item.get("Route",{}).get("DestinationAirport","") or item.get("DestinationAirport",""),
+                    "miles":       miles,
+                    "taxes":       round(taxes,2) if taxes else None,
+                    "date":        item.get("Date","")[:10],
+                    "program":     item.get("Source", prog),
+                    "cabin":       cabin,
+                })
+        except Exception as e:
+            current_app.logger.error("Explore error %s: %s", prog, e)
+            continue
+
+    # Sort by miles, dedupe by route+date
+    seen = set()
+    unique = []
+    for d in sorted(all_deals, key=lambda x: x["miles"]):
+        key = (d["origin"], d["destination"], d["date"])
+        if key in seen: continue
+        seen.add(key)
+        unique.append(d)
+
+    return jsonify({"deals": unique[:60], "count": len(unique)})

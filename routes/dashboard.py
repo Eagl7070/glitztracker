@@ -83,3 +83,9 @@ def fifth_freedom():
 @login_required
 def calendar():
     return render_template("dashboard/calendar.html")
+
+
+@dashboard_bp.route("/explore")
+@login_required
+def explore():
+    return render_template("dashboard/explore.html")
