@@ -427,32 +427,94 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;
 
 </div>
 
+
+<div id="trackModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+  z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+  <div style="background:rgba(12,16,28,.98);border:1px solid var(--gold);border-radius:16px;
+    padding:28px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+    <h3 id="modalTitle" style="font-family:var(--serif);font-size:22px;color:var(--ink);margin-bottom:6px">Track Fare</h3>
+    <div id="modalRoute" style="font-family:var(--mono);font-size:13px;color:var(--gold);margin-bottom:18px"></div>
+    <label id="modalLabel" style="font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px">Alert target</label>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span id="modalPrefix" style="font-family:var(--serif);font-size:24px;color:var(--gold)">$</span>
+      <input type="number" id="modalInput" placeholder="3000"
+        style="flex:1;background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:8px;
+        padding:11px 14px;color:var(--ink);font-family:var(--mono);font-size:16px"
+        onkeydown="if(event.key==='Enter')confirmTrack()">
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:20px">Leave blank to track without an alert — you can set it later on the dashboard.</div>
+    <div style="display:flex;gap:10px">
+      <button onclick="confirmTrack()" class="btn gold" style="flex:1;justify-content:center;padding:11px">Add &amp; track</button>
+      <button onclick="closeModal()" class="btn" style="padding:11px 20px">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 function toast(msg,d=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d)}
 
-async function trackCash(origin,dest,label){
-  const nextYear=new Date().getFullYear()+1;
-  const res=await fetch('/api/cash/routes',{method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({label,slices:[{departure_id:origin,arrival_id:dest,date:`${nextYear}-02-01`}],
-      alliance:'any',airlines:[],cabin:'business'})});
-  const data=await res.json();
-  if(data.error){toast('⚠ '+data.error);return;}
-  toast('✓ '+label+' added to Cash Trips!');
+let pendingTrack=null;
+
+function trackCash(origin,dest,label){
+  pendingTrack={type:'cash',origin,dest,label};
+  document.getElementById('modalTitle').textContent='Track Cash Fare';
+  document.getElementById('modalRoute').textContent=label;
+  document.getElementById('modalLabel').textContent='Alert me when the fare drops to (USD)';
+  document.getElementById('modalPrefix').textContent='$';
+  document.getElementById('modalInput').value='';
+  document.getElementById('modalInput').placeholder='3000';
+  document.getElementById('trackModal').style.display='flex';
+  setTimeout(()=>document.getElementById('modalInput').focus(),100);
 }
 
-async function trackAward(origin,dest,label){
+function trackAward(origin,dest,label){
+  pendingTrack={type:'award',origin,dest,label};
+  document.getElementById('modalTitle').textContent='Track Award Space';
+  document.getElementById('modalRoute').textContent=label;
+  document.getElementById('modalLabel').textContent='Alert me when miles drop below';
+  document.getElementById('modalPrefix').textContent='';
+  document.getElementById('modalInput').value='';
+  document.getElementById('modalInput').placeholder='60000';
+  document.getElementById('trackModal').style.display='flex';
+  setTimeout(()=>document.getElementById('modalInput').focus(),100);
+}
+
+function closeModal(){
+  document.getElementById('trackModal').style.display='none';
+  pendingTrack=null;
+}
+
+async function confirmTrack(){
+  if(!pendingTrack)return;
+  const val=parseFloat(document.getElementById('modalInput').value);
   const nextYear=new Date().getFullYear()+1;
-  const res=await fetch('/api/award/routes',{method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({label,origin,destination:dest,
-      date:`${nextYear}-02-01`,trip_type:'one_way',cabin:'business',
-      alliance:'any',programs:[],max_miles:null,only_direct:false})});
-  const data=await res.json();
-  if(data.error){toast('⚠ '+data.error);return;}
-  toast('✓ '+label+' added to Award Trips!');
+  const {type,origin,dest,label}=pendingTrack;
+
+  if(type==='cash'){
+    const res=await fetch('/api/cash/routes',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({label,
+        slices:[{departure_id:origin,arrival_id:dest,date:`${nextYear}-02-01`}],
+        alliance:'any',airlines:[],cabin:'business',
+        target_price:isNaN(val)?null:val})});
+    const data=await res.json();
+    closeModal();
+    if(data.error){toast('⚠ '+data.error);return;}
+    toast('✓ '+label+' added to Cash Trips'+(isNaN(val)?'':' — alert at $'+Math.round(val).toLocaleString())+'!');
+  }else{
+    const res=await fetch('/api/award/routes',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({label,origin,destination:dest,
+        date:`${nextYear}-02-01`,trip_type:'one_way',cabin:'business',
+        alliance:'any',programs:[],
+        max_miles:isNaN(val)?null:parseInt(val),only_direct:false})});
+    const data=await res.json();
+    closeModal();
+    if(data.error){toast('⚠ '+data.error);return;}
+    toast('✓ '+label+' added to Award Trips'+(isNaN(val)?'':' — alert below '+parseInt(val).toLocaleString()+' mi')+'!');
+  }
 }
 </script>
 </body>
