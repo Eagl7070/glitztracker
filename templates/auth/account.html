@@ -42,9 +42,23 @@ select option{background:#0a0e1c}
 .btn.gold:hover{background:var(--gold2)}
 .btn.sm{padding:7px 14px;font-size:12px;background:rgba(255,255,255,.1);
   border:1px solid var(--line);color:var(--ink);cursor:pointer}
-.check-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;
-  font-size:13px;color:var(--ink2)}
-.check-row input{width:auto;margin:0;accent-color:var(--gold)}
+.check-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;
+  font-size:14px;color:var(--ink);cursor:pointer;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  border-radius:9px;padding:12px 15px;transition:all .15s}
+.check-row:hover{border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.04)}
+.check-row.checked{border-color:var(--gold);background:rgba(245,200,66,.08)}
+.check-row input[type=checkbox]{
+  appearance:none;-webkit-appearance:none;
+  width:22px;height:22px;flex-shrink:0;margin:0;cursor:pointer;
+  border:2px solid var(--muted);border-radius:6px;
+  background:rgba(0,0,0,.3);position:relative;transition:all .15s}
+.check-row input[type=checkbox]:checked{
+  background:var(--gold);border-color:var(--gold)}
+.check-row input[type=checkbox]:checked::after{
+  content:"✓";position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);color:#1a1000;
+  font-size:15px;font-weight:900;line-height:1}
 .flash{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px}
 .flash.error{background:rgba(224,85,85,.15);border:1px solid rgba(224,85,85,.3);color:#f09090}
 .flash.success{background:rgba(76,175,122,.15);border:1px solid rgba(76,175,122,.3);color:#7fe8a8}
@@ -128,28 +142,30 @@ hr.div{border:none;border-top:1px solid var(--line);margin:16px 0}
       </div>
       <label class="flbl">Alert email (leave blank to use login email)</label>
       <input type="email" name="alert_email" value="{{current_user.alert_email or ''}}">
-      <label class="flbl" style="margin-bottom:10px">Notification channels</label>
-      <div class="check-row">
+      <label class="flbl" style="margin-bottom:10px">Notification channels
+        <span style="color:var(--muted);font-weight:400;letter-spacing:0;text-transform:none;font-size:11px"> — pick any combination</span>
+      </label>
+      <label class="check-row {{'checked' if current_user.notify_email}}">
         <input type="checkbox" name="notify_email" {{'checked' if current_user.notify_email}}>
         Email alerts
-      </div>
+      </label>
       {% if current_user.plan != "free" %}
       <div class="notify-info">
-        📱 SMS and Telegram alerts are available on your {{current_user.plan|title}} plan.
-        Add your phone below to enable SMS, or enter your Telegram chat ID.
+        📱 SMS, Telegram, and WhatsApp alerts are available on your {{current_user.plan|title}} plan.
+        Enable any combination — you'll get notified on every channel you pick.
       </div>
-      <div class="check-row">
+      <label class="check-row {{'checked' if current_user.notify_telegram}}">
         <input type="checkbox" name="notify_telegram" {{'checked' if current_user.notify_telegram}}>
         Telegram alerts
-      </div>
-      <div class="check-row">
+      </label>
+      <label class="check-row {{'checked' if current_user.notify_sms}}">
         <input type="checkbox" name="notify_sms" {{'checked' if current_user.notify_sms}}>
         SMS alerts (phone must be verified below)
-      </div>
-      <div class="check-row">
+      </label>
+      <label class="check-row {{'checked' if current_user.notify_whatsapp}}">
         <input type="checkbox" name="notify_whatsapp" {{'checked' if current_user.notify_whatsapp}}>
         WhatsApp alerts
-      </div>
+      </label>
       <label class="flbl">WhatsApp number (E.164 e.g. +19725551234)</label>
       <input type="tel" name="whatsapp_number" placeholder="+19725551234"
              value="{{current_user.phone_number or ''}}">
@@ -487,6 +503,16 @@ function pickHomeAp(code, name){
   const drop=document.getElementById('homeApDrop');
   if(drop)drop.style.display='none';
 }
+</script>
+
+
+<script>
+// Live-highlight notification rows when toggled
+document.querySelectorAll('.check-row input[type=checkbox]').forEach(cb=>{
+  cb.addEventListener('change',()=>{
+    cb.closest('.check-row').classList.toggle('checked', cb.checked);
+  });
+});
 </script>
 
 </body>
