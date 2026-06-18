@@ -66,17 +66,19 @@ def account():
         action = request.form.get("action","save")
 
         if action == "save_profile":
-            current_user.name         = request.form.get("name","").strip()
-            current_user.alert_email  = request.form.get("alert_email","").strip()
-            current_user.notify_email = "notify_email" in request.form
+            current_user.name            = request.form.get("name","").strip()
+            current_user.alert_email     = request.form.get("alert_email","").strip()
+            current_user.notify_email    = "notify_email" in request.form
             current_user.notify_telegram = "notify_telegram" in request.form
-            current_user.notify_sms   = "notify_sms" in request.form
+            current_user.notify_sms      = "notify_sms" in request.form
             current_user.notify_whatsapp = "notify_whatsapp" in request.form
-        current_user.home_airport = request.form.get("home_airport","").upper().strip()[:4]
-        wa_num = request.form.get("whatsapp_number","").strip()
-        if wa_num and not current_user.phone_number:
-            current_user.phone_number = wa_num
+            current_user.home_airport    = request.form.get("home_airport","").upper().strip()[:4]
             current_user.telegram_chat_id = request.form.get("telegram_chat_id","").strip()
+
+            wa_num = request.form.get("whatsapp_number","").strip()
+            if wa_num and not current_user.phone_number:
+                current_user.phone_number = wa_num
+
             new_pw = request.form.get("new_password","").strip()
             if new_pw:
                 if len(new_pw) < 8:
@@ -84,6 +86,7 @@ def account():
                     return render_template("auth/account.html")
                 current_user.password_hash = bcrypt.generate_password_hash(new_pw).decode("utf-8")
                 flash("Password updated.", "success")
+
             db.session.commit()
             flash("Account saved.", "success")
 
