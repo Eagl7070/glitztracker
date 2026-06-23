@@ -1,5 +1,5 @@
 import json
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from flask_login import login_required, current_user
 from models import db, CashRoute, AwardRoute, PriceHistory
 
@@ -149,8 +149,8 @@ def history():
 @api_bp.route("/calendar/cash", methods=["POST"])
 @login_required
 def calendar_cash():
-    """Search cash fares for every day in a date range via SerpApi."""
-    import os, requests as req
+    """Cash fares for each day in a month via SerpApi Google Flights price insights."""
+    import requests as req
     from datetime import date, timedelta
     body = request.json or {}
     origin      = body.get("origin","").upper().strip()
@@ -159,7 +159,7 @@ def calendar_cash():
     start_date  = body.get("start_date","")
     end_date    = body.get("end_date","")
     if not all([origin, destination, start_date, end_date]):
-        return jsonify({"error":"origin, destination, start_date, end_date required"}), 400
+        return jsonify({"error":"origin, destination required"}), 400
 
     SERPAPI_KEY = current_app.config.get("SERPAPI_KEY","")
     if not SERPAPI_KEY:
@@ -168,56 +168,59 @@ def calendar_cash():
     CABIN_CODES = {"economy":"1","premium_economy":"2","business":"3","first":"4"}
     cabin_code  = CABIN_CODES.get(cabin,"3")
 
-    # Build date list
     try:
         d_start = date.fromisoformat(start_date)
         d_end   = date.fromisoformat(end_date)
     except Exception:
         return jsonify({"error":"invalid date format"}), 400
 
+    today = date.today()
     results = []
-    d = d_start
-    # SerpApi supports date-range search — use departure_token approach
-    # For calendar view we query the whole month at once using outbound_date_range
-    params = {
-        "engine":          "google_flights",
-        "api_key":         SERPAPI_KEY,
-        "departure_id":    origin,
-        "arrival_id":      destination,
-        "outbound_date":   start_date,
-        "return_date":     end_date,
-        "travel_class":    cabin_code,
-        "type":            "1",   # one-way
-        "currency":        "USD",
-        "hl":              "en",
-        "gl":              "us",
-        "show_hidden":     "true",
-    }
-    try:
-        r = req.get("https://serpapi.com/search.json", params=params, timeout=90)
-        r.raise_for_status()
-        data = r.json()
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
-    # Parse best_flights and other_flights
-    all_options = (data.get("best_flights") or []) + (data.get("other_flights") or [])
-    
-    # Group by date
-    date_map = {}
-    for opt in all_options:
-        price = opt.get("price")
-        if not price: continue
-        flights = opt.get("flights",[])
-        if not flights: continue
-        dep_time = flights[0].get("departure_airport",{}).get("time","")
-        dep_date = dep_time[:10] if dep_time else ""
-        airline  = flights[0].get("airline","")
-        if dep_date and (dep_date not in date_map or price < date_map[dep_date]["price"]):
-            date_map[dep_date] = {"price": price, "airline": airline}
+    # Query each day. To stay within SerpApi limits, sample every OTHER day
+    # for months far out, every day for near-term. Cap at ~16 calls.
+    days = []
+    d = max(d_start, today)
+    while d <= d_end:
+        days.append(d)
+        d += timedelta(days=1)
 
-    results = [{"date": k, "price": v["price"], "airline": v["airline"]}
-               for k,v in sorted(date_map.items())]
+    # If too many days, sample to keep under ~16 API calls
+    if len(days) > 16:
+        step = len(days) // 16 + 1
+        days = days[::step]
+
+    for day in days:
+        params = {
+            "engine":        "google_flights",
+            "api_key":       SERPAPI_KEY,
+            "departure_id":  origin,
+            "arrival_id":    destination,
+            "outbound_date": day.isoformat(),
+            "travel_class":  cabin_code,
+            "type":          "2",   # one-way
+            "currency":      "USD",
+            "hl":            "en",
+            "gl":            "us",
+        }
+        try:
+            r = req.get("https://serpapi.com/search.json", params=params, timeout=60)
+            if r.status_code != 200:
+                continue
+            data = r.json()
+            opts = (data.get("best_flights") or []) + (data.get("other_flights") or [])
+            prices = [o.get("price") for o in opts if o.get("price")]
+            if prices:
+                best_opt = min(opts, key=lambda o: o.get("price", 1e9))
+                airline = best_opt.get("flights",[{}])[0].get("airline","")
+                results.append({
+                    "date": day.isoformat(),
+                    "price": min(prices),
+                    "airline": airline,
+                })
+        except Exception as e:
+            current_app.logger.error("Calendar cash %s: %s", day, e)
+            continue
 
     return jsonify({"results": results, "origin": origin, "destination": destination})
 
@@ -225,8 +228,8 @@ def calendar_cash():
 @api_bp.route("/calendar/award", methods=["POST"])
 @login_required
 def calendar_award():
-    """Search award space for every day in a date range via seats.aero."""
-    import os, requests as req
+    """Award space per day via seats.aero cached availability (Pro-tier endpoint)."""
+    import requests as req
     body = request.json or {}
     origin      = body.get("origin","").upper().strip()
     destination = body.get("destination","").upper().strip()
@@ -244,48 +247,47 @@ def calendar_award():
     CABIN_PREFIX = {"economy":"Y","premium_economy":"W","business":"J","first":"F"}
     prefix = CABIN_PREFIX.get(cabin,"J")
 
-    ALLIANCE_PROGS = {
-        "any": ["american","alaska","qantas","delta","united","lufthansa",
-                "flying_blue","aeroplan","british","cathay","finnair",
-                "iberia","japan","korean","ana","singapore"],
-    }
     if not programs:
-        programs = ALLIANCE_PROGS["any"]
+        programs = ["american","alaska","qantas","delta","united","lufthansa",
+                    "flying_blue","aeroplan","british","cathay","finnair",
+                    "iberia","japan","korean","ana","singapore"]
 
-    params = {
-        "origin_airport":      origin,
-        "destination_airport": destination,
-        "cabin":               cabin,
-        "start_date":          start_date,
-        "end_date":            end_date,
-        "take":                500,
-        "order_by":            "lowest_mileage",
-        "sources":             ",".join(programs),
-    }
     headers = {"Partner-Authorization": SEATS_KEY, "accept": "application/json"}
-    try:
-        r = req.get("https://seats.aero/partnerapi/search",
-                    params=params, headers=headers, timeout=90)
-        if r.status_code == 401:
-            return jsonify({"error":"seats.aero auth failed"}), 401
-        r.raise_for_status()
-        data = r.json()
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-    # Group by date — keep lowest miles per date
     date_map = {}
-    for item in data.get("data",[]):
-        if not item.get(f"{prefix}Available"): continue
-        try:   miles = int(str(item.get(f"{prefix}MileageCost","0")).replace(",",""))
-        except: miles = 0
-        if not miles: continue
-        try:   taxes = float(str(item.get(f"{prefix}TotalTaxes","0")).replace(",",""))
-        except: taxes = 0.0
-        dep_date = item.get("Date","")[:10]
-        program  = item.get("Source","")
-        if dep_date and (dep_date not in date_map or miles < date_map[dep_date]["miles"]):
-            date_map[dep_date] = {"miles": miles, "taxes": taxes or None, "program": program}
+
+    # Query cached availability per program (cap programs to respect daily limit)
+    for prog in programs[:8]:
+        params = {
+            "source":         prog,
+            "cabin":          cabin,
+            "origin_airport": origin,
+            "take":           500,
+            "order_by":       "lowest_mileage",
+        }
+        try:
+            r = req.get("https://seats.aero/partnerapi/availability",
+                        params=params, headers=headers, timeout=45)
+            if r.status_code != 200:
+                continue
+            data = r.json()
+        except Exception as e:
+            current_app.logger.error("Award cal %s: %s", prog, e)
+            continue
+
+        for item in data.get("data", []):
+            # Filter to our destination and date window
+            dest_ap = item.get("Route",{}).get("DestinationAirport","") or item.get("DestinationAirport","")
+            if dest_ap != destination: continue
+            dep_date = item.get("Date","")[:10]
+            if not dep_date or dep_date < start_date or dep_date > end_date: continue
+            if not item.get(f"{prefix}Available"): continue
+            try:   miles = int(str(item.get(f"{prefix}MileageCost","0")).replace(",",""))
+            except: miles = 0
+            if not miles: continue
+            try:   taxes = float(str(item.get(f"{prefix}TotalTaxes","0")).replace(",",""))
+            except: taxes = 0.0
+            if dep_date not in date_map or miles < date_map[dep_date]["miles"]:
+                date_map[dep_date] = {"miles": miles, "taxes": taxes or None, "program": prog}
 
     results = [{"date":k,"miles":v["miles"],"taxes":v["taxes"],"program":v["program"]}
                for k,v in sorted(date_map.items())]
@@ -313,7 +315,7 @@ def run_cash_now():
                 "any": set(),
             }
             with current_app.app_context():
-                from .models import db, CashRoute, PriceHistory
+                from models import db, CashRoute, PriceHistory
                 routes = CashRoute.query.filter_by(user_id=current_user.id, active=True).all()
                 now = datetime.now(timezone.utc)
                 for route in routes:
@@ -373,7 +375,7 @@ def run_award_now():
                 return
             CABIN_PREFIX = {"economy":"Y","premium_economy":"W","business":"J","first":"F"}
             with current_app.app_context():
-                from .models import db, AwardRoute, PriceHistory
+                from models import db, AwardRoute, PriceHistory
                 routes = AwardRoute.query.filter_by(user_id=current_user.id, active=True).all()
                 now = datetime.now(timezone.utc)
                 for route in routes:
@@ -382,35 +384,42 @@ def run_award_now():
                     if not progs:
                         progs = ["american","alaska","qantas","delta","united","lufthansa",
                                  "flying_blue","aeroplan","british","cathay","finnair","iberia","japan"]
-                    params = {"origin_airport":route.origin,"destination_airport":route.destination,
-                              "cabin":route.cabin or "business","start_date":route.date,
-                              "end_date":route.date,"take":50,"order_by":"lowest_mileage",
-                              "sources":",".join(progs)}
-                    try:
-                        r = req.get("https://seats.aero/partnerapi/search",
-                            params=params, headers={"Partner-Authorization":SEATS_KEY,"accept":"application/json"},
-                            timeout=60)
-                        r.raise_for_status()
-                        data = r.json()
-                        for item in data.get("data",[]):
-                            if not item.get(f"{prefix}Available"): continue
-                            try: miles = int(str(item.get(f"{prefix}MileageCost","0")).replace(",",""))
-                            except: miles = 0
-                            if route.max_miles and miles and miles > route.max_miles: continue
-                            try: taxes = float(str(item.get(f"{prefix}TotalTaxes","0")).replace(",",""))
-                            except: taxes = 0.0
-                            route.last_miles = miles
-                            route.last_taxes = taxes or None
-                            route.last_checked = now
-                            ph = PriceHistory(user_id=current_user.id, route_id=route.id,
-                                route_type="award", miles=miles, taxes=taxes or None,
-                                cabin=route.cabin, alliance=route.alliance,
-                                program=item.get("Source",""))
-                            db.session.add(ph)
-                            db.session.commit()
-                            break  # just take the first/best
-                    except Exception as e:
-                        current_app.logger.error("Manual award check error route %d: %s", route.id, e)
+                    best = None
+                    for prog in progs[:6]:
+                        params = {"source":prog,"origin_airport":route.origin,
+                                  "cabin":route.cabin or "business","take":200,
+                                  "order_by":"lowest_mileage"}
+                        try:
+                            r = req.get("https://seats.aero/partnerapi/availability",
+                                params=params, headers={"Partner-Authorization":SEATS_KEY,"accept":"application/json"},
+                                timeout=45)
+                            if r.status_code != 200: continue
+                            data = r.json()
+                            for item in data.get("data",[]):
+                                dest_ap = item.get("Route",{}).get("DestinationAirport","") or item.get("DestinationAirport","")
+                                if dest_ap != route.destination: continue
+                                if item.get("Date","")[:10] != route.date: continue
+                                if not item.get(f"{prefix}Available"): continue
+                                try: miles = int(str(item.get(f"{prefix}MileageCost","0")).replace(",",""))
+                                except: miles = 0
+                                if not miles: continue
+                                if route.max_miles and miles > route.max_miles: continue
+                                try: taxes = float(str(item.get(f"{prefix}TotalTaxes","0")).replace(",",""))
+                                except: taxes = 0.0
+                                if best is None or miles < best["miles"]:
+                                    best = {"miles":miles,"taxes":taxes or None,"program":prog}
+                        except Exception as e:
+                            current_app.logger.error("Manual award check %s route %d: %s", prog, route.id, e)
+                    if best:
+                        route.last_miles = best["miles"]
+                        route.last_taxes = best["taxes"]
+                        route.last_checked = now
+                        ph = PriceHistory(user_id=current_user.id, route_id=route.id,
+                            route_type="award", miles=best["miles"], taxes=best["taxes"],
+                            cabin=route.cabin, alliance=route.alliance,
+                            program=best["program"])
+                        db.session.add(ph)
+                        db.session.commit()
         except Exception as e:
             current_app.logger.error("Manual award check thread error: %s", e)
 
