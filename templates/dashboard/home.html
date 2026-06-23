@@ -316,7 +316,7 @@ textarea{resize:vertical;min-height:60px}
     <span class="plan-chip plan-{{current_user.plan}}">{{current_user.plan|upper}}</span>
     <a href="/dashboard/explore"><button class="btn sm">🔍 Explore</button></a>
     <a href="/dashboard/fifth-freedom"><button class="btn sm">✈ Fifth Freedom</button></a>
-    <a href="/dashboard/calendar"><button class="btn sm">📅 Calendar</button></a>
+    <a href="/dashboard/calendar/cash"><button class="btn sm">📅 Calendar</button></a>
     <button class="btn sm" id="checkNowBtn" onclick="runCheckNow()" style="border-color:var(--gold);color:var(--gold)">⚡ Check Now</button>
     {% if current_user.plan != "elite" %}
     <a href="/billing/upgrade"><button class="btn sm">Upgrade</button></a>
