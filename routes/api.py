@@ -280,7 +280,7 @@ def calendar_award():
         try:   miles = int(str(item.get(f"{prefix}MileageCost","0")).replace(",",""))
         except: miles = 0
         if not miles: continue
-        try:   taxes = float(str(item.get(f"{prefix}Taxes","0")).replace(",",""))
+        try:   taxes = float(str(item.get(f"{prefix}TotalTaxes","0")).replace(",",""))
         except: taxes = 0.0
         dep_date = item.get("Date","")[:10]
         program  = item.get("Source","")
@@ -397,7 +397,7 @@ def run_award_now():
                             try: miles = int(str(item.get(f"{prefix}MileageCost","0")).replace(",",""))
                             except: miles = 0
                             if route.max_miles and miles and miles > route.max_miles: continue
-                            try: taxes = float(str(item.get(f"{prefix}Taxes","0")).replace(",",""))
+                            try: taxes = float(str(item.get(f"{prefix}TotalTaxes","0")).replace(",",""))
                             except: taxes = 0.0
                             route.last_miles = miles
                             route.last_taxes = taxes or None
@@ -464,7 +464,7 @@ def explore_deals():
                 except: miles = 0
                 if not miles: continue
                 if max_pts and miles > int(max_pts): continue
-                try:    taxes = float(str(item.get(f"{prefix}Taxes","0")).replace(",",""))
+                try:    taxes = float(str(item.get(f"{prefix}TotalTaxes","0")).replace(",",""))
                 except: taxes = 0.0
                 all_deals.append({
                     "origin":      item.get("Route",{}).get("OriginAirport","") or item.get("OriginAirport",""),
