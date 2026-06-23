@@ -69,6 +69,13 @@ select option,select optgroup{background:#0a0e1c}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2)}
 .legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
 #loadingMsg{text-align:center;padding:40px;font-size:15px;color:var(--muted);display:none}
+.spinner{display:inline-block;width:38px;height:38px;border:4px solid rgba(77,217,192,.2);
+  border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.search-btn.loading{opacity:.6;pointer-events:none}
+.search-btn .btn-spin{display:none;width:14px;height:14px;border:2px solid rgba(0,26,24,.3);
+  border-top-color:#001a18;border-radius:50%;animation:spin .8s linear infinite;margin-right:6px;vertical-align:middle}
+.search-btn.loading .btn-spin{display:inline-block}
 #detailPanel{background:var(--glass);backdrop-filter:var(--blur);border:1px solid var(--gold);border-radius:12px;padding:18px 22px;margin-bottom:20px;display:none}
 #detailPanel h3{font-family:var(--serif);font-size:18px;margin-bottom:12px}
 .detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
@@ -114,6 +121,13 @@ select option,select optgroup{background:#0a0e1c}
                oninput="apSearch(this)" onfocus="apSearch(this)" onblur="setTimeout(()=>apHide(this),200)">
         <div class="ap-drop"></div>
       </div>
+    </div>
+    <div class="ctrl-grp">
+      <span class="flbl">Trip</span>
+      <select id="calTrip">
+        <option value="one_way" selected>One way</option>
+        <option value="round_trip">Round trip</option>
+      </select>
     </div>
     <div class="ctrl-grp">
       <span class="flbl">Month</span>
@@ -168,7 +182,7 @@ select option,select optgroup{background:#0a0e1c}
         </optgroup>
       </select>
     </div>
-    <button class="search-btn" onclick="searchCalendar()">Search →</button>
+    <button class="search-btn" id="searchBtn" onclick="searchCalendar()"><span class="btn-spin"></span>Search →</button>
   </div>
 
   <div class="legend">
@@ -178,7 +192,7 @@ select option,select optgroup{background:#0a0e1c}
     <div class="legend-item" style="color:var(--muted)">· Click any day to track it</div>
   </div>
 
-  <div id="loadingMsg">Searching award space across the month…</div>
+  <div id="loadingMsg"><div class="spinner"></div><div>Searching award space across the month…</div></div>
   <div id="detailPanel"></div>
 
   <div class="cal-wrap">
@@ -500,6 +514,7 @@ initMonthPicker(()=>{
 });
 
 const CABIN_LABELS={economy:'Economy',premium_economy:'Prem Economy',business:'Business',first:'First'};
+const PROG_LABELS={american:'American AAdvantage',alaska:'Alaska',british:'BA Avios',cathay:'Cathay',finnair:'Finnair',iberia:'Iberia',japan:'JAL',qantas:'Qantas',delta:'Delta',flying_blue:'Flying Blue',korean:'Korean Air',aeromexico:'Aeromexico',virginatlantic:'Virgin Atlantic',united:'United',aeroplan:'Aeroplan',lufthansa:'Lufthansa',ana:'ANA',singapore:'KrisFlyer',avianca:'LifeMiles',turkish:'Turkish',emirates:'Emirates',etihad:'Etihad',jetblue:'JetBlue'};
 const GROUPS={
   _ow:['american','alaska','british','cathay','finnair','iberia','japan','qantas'],
   _st:['delta','flying_blue','korean','aeromexico','virginatlantic'],
@@ -550,23 +565,27 @@ async function searchCalendar(){
   else if(GROUPS[progSel])programs=GROUPS[progSel];
   else programs=[progSel];
   document.getElementById('loadingMsg').style.display='block';
+  document.getElementById('searchBtn').classList.add('loading');
   fareData={};
   renderLoadingCells();
   const dim=new Date(currentYear,currentMonth+1,0).getDate();
   const startDate=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}-01`;
   const endDate=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(dim).padStart(2,'0')}`;
   window._calFrom=from; window._calTo=to; window._calCabin=cabin; window._calProg=progSel;
+  window._calTrip=document.getElementById('calTrip').value;
   try{
     const res=await fetch('/api/calendar/award',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({origin:from,destination:to,cabin,start_date:startDate,end_date:endDate,programs})});
     const data=await res.json();
     document.getElementById('loadingMsg').style.display='none';
+    document.getElementById('searchBtn').classList.remove('loading');
     if(data.error){toast('⚠ '+data.error,4000);renderSkeleton();return;}
     (data.results||[]).forEach(r=>{fareData[r.date]={miles:r.miles,taxes:r.taxes,program:r.program||''};});
     renderCalendar();
     if(!data.results||!data.results.length)toast('No award space found for this route/month');
   }catch(e){
     document.getElementById('loadingMsg').style.display='none';
+    document.getElementById('searchBtn').classList.remove('loading');
     toast('Search failed'); renderSkeleton();
   }
 }
@@ -608,11 +627,14 @@ function showDetail(dateStr){
   if(!f)return;
   const panel=document.getElementById('detailPanel');
   panel.style.display='block';
+  const cpm=f.taxes?((f.miles)/(f.miles/1000)).toFixed(0):null;
+  const tripLabel=(window._calTrip==='round_trip')?'Round trip':'One way';
   panel.innerHTML=`<h3>${window._calFrom} → ${window._calTo} · ${dateStr}</h3>
-    <div class="detail-row"><span class="detail-label">Miles</span><span class="detail-value" style="color:var(--teal)">${f.miles.toLocaleString()} mi</span></div>
-    <div class="detail-row"><span class="detail-label">Taxes</span><span class="detail-value">${f.taxes?'$'+Math.round(f.taxes):'—'}</span></div>
-    <div class="detail-row"><span class="detail-label">Program</span><span class="detail-value">${f.program||'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">${tripLabel} miles</span><span class="detail-value" style="color:var(--teal)">${f.miles.toLocaleString()} mi</span></div>
+    <div class="detail-row"><span class="detail-label">Taxes &amp; fees</span><span class="detail-value">${f.taxes?'$'+Math.round(f.taxes):'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">Program</span><span class="detail-value">${PROG_LABELS[f.program]||f.program||'—'}</span></div>
     <div class="detail-row"><span class="detail-label">Cabin</span><span class="detail-value">${CABIN_LABELS[window._calCabin]}</span></div>
+    <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${dateStr}</span></div>
     <div style="margin-top:14px;display:flex;gap:10px">
       <button class="btn teal" onclick="trackThisDate('${dateStr}')">+ Track this date</button>
       <button class="btn" onclick="document.getElementById('detailPanel').style.display='none'">Close</button>
@@ -626,7 +648,7 @@ async function trackThisDate(dateStr){
   const res=await fetch('/api/award/routes',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({label:`${window._calFrom}→${window._calTo} ${dateStr}`,
       origin:window._calFrom,destination:window._calTo,date:dateStr,
-      trip_type:'one_way',cabin:window._calCabin,alliance:'any',
+      trip_type:window._calTrip||'one_way',cabin:window._calCabin,alliance:'any',
       programs:prog?[prog]:[],max_miles:f?f.miles:null,only_direct:false})});
   const data=await res.json();
   if(data.error){toast('⚠ '+data.error);return;}
