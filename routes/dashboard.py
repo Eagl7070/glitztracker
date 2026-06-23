@@ -98,6 +98,12 @@ def calendar_award_page():
     return render_template("dashboard/calendar_award.html")
 
 
+@dashboard_bp.route("/calendar/multi")
+@login_required
+def calendar_multi_page():
+    return render_template("dashboard/calendar_multi.html")
+
+
 @dashboard_bp.route("/explore")
 @login_required
 def explore():
