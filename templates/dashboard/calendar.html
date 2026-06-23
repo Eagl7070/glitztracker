@@ -183,6 +183,15 @@ select option{background:#0a0e1c}
       </select>
     </div>
     <div class="ctrl-grp">
+      <span class="flbl">Alliance / Programs</span>
+      <select id="calAlliance" onchange="updateProgramHint()">
+        <option value="any" selected>All alliances</option>
+        <option value="oneworld">Oneworld only</option>
+        <option value="skyteam">SkyTeam only</option>
+        <option value="staralliance">Star Alliance only</option>
+      </select>
+    </div>
+    <div class="ctrl-grp">
       <span class="flbl">View</span>
       <div class="mode-toggle">
         <button class="btn active-mode" id="modeCash" onclick="setMode('cash')">$ Cash</button>
@@ -594,9 +603,16 @@ async function fetchCashFares(from,to,cabin,startDate,endDate){
 
 async function fetchAwardFares(from,to,cabin,startDate,endDate){
   try{
+    const alliance=document.getElementById('calAlliance')?.value||'any';
+    const ALLIANCE_PROGS={
+      oneworld:['american','alaska','british','cathay','finnair','iberia','japan','qantas'],
+      skyteam:['delta','flying_blue','korean','aeromexico','virginatlantic'],
+      staralliance:['united','aeroplan','lufthansa','ana','singapore','avianca','turkish','swiss']
+    };
+    const programs=alliance==='any'?[]:(ALLIANCE_PROGS[alliance]||[]);
     const res=await fetch('/api/calendar/award',{method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({origin:from,destination:to,cabin,start_date:startDate,end_date:endDate})});
+      body:JSON.stringify({origin:from,destination:to,cabin,start_date:startDate,end_date:endDate,programs})});
     const data=await res.json();
     if(data.results){
       data.results.forEach(r=>{
@@ -607,6 +623,10 @@ async function fetchAwardFares(from,to,cabin,startDate,endDate){
       });
     }
   }catch(e){console.error('Award fare fetch error:',e);}
+}
+
+function updateProgramHint(){
+  // Visual feedback only — actual filtering happens in fetchAwardFares
 }
 
 function renderCalendarSkeleton(){
