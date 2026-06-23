@@ -149,15 +149,18 @@ def history():
 @api_bp.route("/calendar/cash", methods=["POST"])
 @login_required
 def calendar_cash():
-    """Cash fares for each day in a month via SerpApi Google Flights price insights."""
+    """Cash fares for each day in a month via SerpApi Google Flights."""
     import requests as req
     from datetime import date, timedelta
     body = request.json or {}
-    origin      = body.get("origin","").upper().strip()
-    destination = body.get("destination","").upper().strip()
-    cabin       = body.get("cabin","business")
-    start_date  = body.get("start_date","")
-    end_date    = body.get("end_date","")
+    origin       = body.get("origin","").upper().strip()
+    destination  = body.get("destination","").upper().strip()
+    cabin        = body.get("cabin","business")
+    start_date   = body.get("start_date","")
+    end_date     = body.get("end_date","")
+    trip_type    = body.get("trip_type","oneway")
+    airline      = body.get("airline","any")
+    return_nights= int(body.get("return_nights",7) or 7)
     if not all([origin, destination, start_date, end_date]):
         return jsonify({"error":"origin, destination required"}), 400
 
@@ -168,6 +171,12 @@ def calendar_cash():
     CABIN_CODES = {"economy":"1","premium_economy":"2","business":"3","first":"4"}
     cabin_code  = CABIN_CODES.get(cabin,"3")
 
+    ALLIANCE_MAP = {
+        "_alliance_oneworld":"ONEWORLD",
+        "_alliance_skyteam":"SKYTEAM",
+        "_alliance_star":"STAR_ALLIANCE",
+    }
+
     try:
         d_start = date.fromisoformat(start_date)
         d_end   = date.fromisoformat(end_date)
@@ -177,52 +186,63 @@ def calendar_cash():
     today = date.today()
     results = []
 
-    # Query each day. To stay within SerpApi limits, sample every OTHER day
-    # for months far out, every day for near-term. Cap at ~16 calls.
     days = []
     d = max(d_start, today)
     while d <= d_end:
-        days.append(d)
-        d += timedelta(days=1)
-
-    # If too many days, sample to keep under ~16 API calls
+        days.append(d); d += timedelta(days=1)
     if len(days) > 16:
-        step = len(days) // 16 + 1
+        step = len(days)//16 + 1
         days = days[::step]
 
     for day in days:
         params = {
-            "engine":        "google_flights",
-            "api_key":       SERPAPI_KEY,
-            "departure_id":  origin,
-            "arrival_id":    destination,
-            "outbound_date": day.isoformat(),
-            "travel_class":  cabin_code,
-            "type":          "2",   # one-way
-            "currency":      "USD",
-            "hl":            "en",
-            "gl":            "us",
+            "engine":"google_flights","api_key":SERPAPI_KEY,
+            "departure_id":origin,"arrival_id":destination,
+            "outbound_date":day.isoformat(),
+            "travel_class":cabin_code,"currency":"USD","hl":"en","gl":"us",
         }
+        if trip_type == "roundtrip":
+            params["type"] = "1"
+            ret = day + timedelta(days=return_nights)
+            params["return_date"] = ret.isoformat()
+        else:
+            params["type"] = "2"
+
+        # Airline / alliance filter
+        if airline and airline != "any":
+            if airline in ALLIANCE_MAP:
+                params["include_airlines"] = ALLIANCE_MAP[airline]
+            else:
+                params["include_airlines"] = airline
+
         try:
             r = req.get("https://serpapi.com/search.json", params=params, timeout=60)
             if r.status_code != 200:
                 continue
             data = r.json()
             opts = (data.get("best_flights") or []) + (data.get("other_flights") or [])
-            prices = [o.get("price") for o in opts if o.get("price")]
-            if prices:
-                best_opt = min(opts, key=lambda o: o.get("price", 1e9))
-                airline = best_opt.get("flights",[{}])[0].get("airline","")
+            valid = [o for o in opts if o.get("price")]
+            if valid:
+                best = min(valid, key=lambda o: o.get("price",1e9))
+                legs = best.get("flights",[])
+                airline_name = legs[0].get("airline","") if legs else ""
+                total_min = best.get("total_duration",0)
+                dur = f"{total_min//60}h {total_min%60}m" if total_min else None
+                stops = max(0, len(legs)-1)
                 results.append({
-                    "date": day.isoformat(),
-                    "price": min(prices),
-                    "airline": airline,
+                    "date":day.isoformat(),
+                    "price":min(o["price"] for o in valid),
+                    "airline":airline_name,
+                    "flight_count":len(valid),
+                    "duration":dur,
+                    "stops":stops,
+                    "return_date":(day+timedelta(days=return_nights)).isoformat() if trip_type=="roundtrip" else None,
                 })
         except Exception as e:
             current_app.logger.error("Calendar cash %s: %s", day, e)
             continue
 
-    return jsonify({"results": results, "origin": origin, "destination": destination})
+    return jsonify({"results":results,"origin":origin,"destination":destination})
 
 
 @api_bp.route("/calendar/award", methods=["POST"])
