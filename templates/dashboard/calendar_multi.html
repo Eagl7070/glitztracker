@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Award Calendar — GlitzTracker</title>
+<title>Multi-City Calendar — GlitzTracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--gold:#f5c842;--gold2:#ffd966;--ink:#f0f4ff;--ink2:#c8d4ee;--muted:#8a9ab8;
@@ -20,20 +20,18 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
 .btn{font-family:var(--sans);font-size:13px;font-weight:500;padding:8px 16px;border-radius:7px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink);cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block}
 .btn:hover{border-color:var(--gold);color:var(--gold)}
 .btn.gold{background:var(--gold);color:#1a1000;border-color:var(--gold);font-weight:700}
-.btn.teal{background:rgba(77,217,192,.15);color:var(--teal);border-color:rgba(77,217,192,.3)}
 .btn.sm{padding:6px 13px;font-size:12px}
-.btn.tabactive{background:var(--teal);color:#001a18;border-color:var(--teal);font-weight:700}
+.btn.tabactive{background:var(--gold);color:#1a1000;border-color:var(--gold);font-weight:700}
 .shell{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:28px 24px 80px}
 h1{font-family:var(--serif);font-size:32px;font-weight:700;margin-bottom:6px}
 .sub{font-size:14px;color:var(--muted);margin-bottom:20px}
-.caltabs{display:flex;gap:8px;margin-bottom:24px}
-.controls{background:var(--glass);backdrop-filter:var(--blur);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:24px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
+.caltabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
 .ctrl-grp{display:flex;flex-direction:column;gap:5px}
 .flbl{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
 .ap-wrap{position:relative}
-.ap-input{background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:7px;padding:9px 12px;color:var(--ink);font-family:var(--mono);font-size:13px;width:120px}
+.ap-input{background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:7px;padding:9px 12px;color:var(--ink);font-family:var(--mono);font-size:13px;width:110px}
 .ap-input:focus{outline:none;border-color:var(--gold)}
-.ap-drop{position:absolute;top:100%;left:0;min-width:260px;background:rgba(6,10,20,.97);border:1px solid var(--gold);border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.6);display:none}
+.ap-drop{position:absolute;top:100%;left:0;min-width:240px;background:rgba(6,10,20,.97);border:1px solid var(--gold);border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.6);display:none}
 .ap-item{padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.05)}
 .ap-item:hover{background:rgba(245,200,66,.12)}
 .ap-code{font-family:var(--mono);font-weight:700;color:var(--gold);background:rgba(245,200,66,.1);padding:2px 7px;border-radius:4px;font-size:12px;flex-shrink:0}
@@ -41,48 +39,60 @@ h1{font-family:var(--serif);font-size:32px;font-weight:700;margin-bottom:6px}
 select{background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:7px;padding:9px 12px;color:var(--ink);font-family:var(--mono);font-size:13px;cursor:pointer;-webkit-appearance:none}
 select:focus{outline:none;border-color:var(--gold)}
 select option,select optgroup{background:#0a0e1c}
-.search-btn{background:var(--gold);color:#1a1000;border:none;border-radius:8px;padding:10px 22px;font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer}
-.cal-wrap{background:var(--glass);backdrop-filter:var(--blur);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:20px}
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.cal-title{font-family:var(--serif);font-size:22px;font-weight:700}
-.cal-nav{display:flex;gap:8px}
-.cal-nav button{background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:14px}
-.cal-nav button:hover{border-color:var(--gold);color:var(--gold)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.cal-day-header{text-align:center;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:6px 0}
-.cal-cell{border-radius:8px;padding:8px 6px;min-height:70px;position:relative;cursor:pointer;transition:all .15s;border:1px solid transparent;display:flex;flex-direction:column}
-.cal-cell:hover{border-color:var(--gold)!important;transform:scale(1.03);z-index:2}
-.cal-cell.empty{background:transparent;cursor:default;border:none}
-.cal-cell.empty:hover{transform:none;border:none}
-.cal-cell.loading{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);animation:shimmer 1.5s infinite}
-@keyframes shimmer{0%,100%{opacity:.5}50%{opacity:1}}
-.cal-cell.no-data{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.06)}
-.cal-cell.low{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.25)}
-.cal-cell.mid{background:rgba(234,179,8,.12);border-color:rgba(234,179,8,.2)}
-.cal-cell.high{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.2)}
-.day-num{font-size:12px;color:var(--muted);margin-bottom:4px}
-.day-price{font-family:var(--mono);font-weight:700;font-size:14px;line-height:1.2}
-.day-price.no-data{color:var(--muted);font-size:11px;font-weight:400}
-.day-airline{font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.best-badge{position:absolute;top:4px;right:4px;background:var(--gold);color:#1a1000;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px}
-.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
-.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2)}
-.legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
-#loadingMsg{text-align:center;padding:40px;font-size:15px;color:var(--muted);display:none}
-.spinner{display:inline-block;width:38px;height:38px;border:4px solid rgba(77,217,192,.2);
-  border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
+
+.global-controls{background:var(--glass);backdrop-filter:var(--blur);border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
+
+.leg-card{background:var(--glass);backdrop-filter:var(--blur);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:16px;position:relative}
+.leg-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+.leg-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--gold);color:#1a1000;font-weight:700;font-size:13px;flex-shrink:0}
+.leg-title{font-family:var(--serif);font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px}
+.leg-inputs{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.leg-search-btn{background:var(--gold);color:#1a1000;border:none;border-radius:8px;padding:9px 18px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer}
+.leg-search-btn.loading{opacity:.6;pointer-events:none}
+.leg-search-btn .btn-spin{display:none;width:13px;height:13px;border:2px solid rgba(26,16,0,.3);border-top-color:#1a1000;border-radius:50%;animation:spin .8s linear infinite;margin-right:6px;vertical-align:middle}
+.leg-search-btn.loading .btn-spin{display:inline-block}
+.remove-leg{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1}
+.remove-leg:hover{color:var(--c-high)}
+
+.mini-cal{margin-top:16px;display:none}
+.mini-cal.show{display:block}
+.mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:10px}
+.mini-dayhdr{text-align:center;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:4px 0}
+.mini-cell{border-radius:6px;padding:5px 3px;min-height:48px;cursor:pointer;border:1px solid transparent;transition:all .12s;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mini-cell:hover{border-color:var(--gold)!important;transform:scale(1.08);z-index:2}
+.mini-cell.empty{background:transparent;cursor:default;border:none}
+.mini-cell.empty:hover{transform:none}
+.mini-cell.loading{background:rgba(255,255,255,.04);animation:shimmer 1.5s infinite}
+.mini-cell.no-data{background:rgba(255,255,255,.03)}
+.mini-cell.low{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.25)}
+.mini-cell.mid{background:rgba(234,179,8,.12);border-color:rgba(234,179,8,.2)}
+.mini-cell.high{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.2)}
+.mini-cell.selected{border-color:var(--gold)!important;background:rgba(245,200,66,.25);box-shadow:0 0 0 1px var(--gold)}
+.mini-daynum{font-size:10px;color:var(--muted)}
+.mini-price{font-family:var(--mono);font-weight:700;font-size:11px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.search-btn.loading{opacity:.6;pointer-events:none}
-.search-btn .btn-spin{display:none;width:14px;height:14px;border:2px solid rgba(0,26,24,.3);
-  border-top-color:#001a18;border-radius:50%;animation:spin .8s linear infinite;margin-right:6px;vertical-align:middle}
-.search-btn.loading .btn-spin{display:inline-block}
-#detailPanel{background:var(--glass);backdrop-filter:var(--blur);border:1px solid var(--gold);border-radius:12px;padding:18px 22px;margin-bottom:20px;display:none}
-#detailPanel h3{font-family:var(--serif);font-size:18px;margin-bottom:12px}
-.detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
-.detail-row:last-child{border-bottom:none}
-.detail-label{font-size:13px;color:var(--muted)}
-.detail-value{font-family:var(--mono);font-size:14px;font-weight:700}
-#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:rgba(8,12,24,.94);backdrop-filter:var(--blur);border:1px solid var(--gold);color:var(--ink);padding:10px 20px;border-radius:10px;font-family:var(--mono);font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:999;white-space:nowrap}
+@keyframes shimmer{0%,100%{opacity:.5}50%{opacity:1}}
+.spinner{display:inline-block;width:30px;height:30px;border:3px solid rgba(245,200,66,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+.mini-nav{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-top:6px}
+.mini-nav button{background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--ink);border-radius:5px;padding:3px 11px;cursor:pointer;font-size:13px}
+.mini-nav button:hover{border-color:var(--gold);color:var(--gold)}
+.mini-month-lbl{font-family:var(--mono);font-size:13px;color:var(--ink2)}
+.leg-selected{margin-top:12px;padding:10px 14px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:8px;font-size:13px;display:none}
+.leg-selected.show{display:flex;align-items:center;justify-content:space-between}
+.leg-selected .sel-info{color:var(--ink2)}
+.leg-selected .sel-price{font-family:var(--mono);font-weight:700;color:var(--c-low);font-size:15px}
+
+.add-leg-btn{width:100%;background:rgba(245,200,66,.08);border:1px dashed rgba(245,200,66,.3);border-radius:12px;padding:14px;color:var(--gold);font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:20px}
+.add-leg-btn:hover{background:rgba(245,200,66,.14)}
+
+.total-bar{position:sticky;bottom:0;z-index:50;background:rgba(8,12,24,.96);backdrop-filter:var(--blur);border:1px solid var(--gold);border-radius:14px;padding:18px 24px;margin-top:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.total-info{font-size:13px;color:var(--muted)}
+.total-price{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--gold)}
+.total-price .partial{font-size:14px;color:var(--muted);font-weight:400;margin-left:8px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2)}
+.legend-dot{width:11px;height:11px;border-radius:3px}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(8,12,24,.94);backdrop-filter:var(--blur);border:1px solid var(--gold);color:var(--ink);padding:10px 20px;border-radius:10px;font-family:var(--mono);font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:999;white-space:nowrap}
 #toast.show{opacity:1}
 </style>
 </head>
@@ -97,46 +107,19 @@ select option,select optgroup{background:#0a0e1c}
 </nav>
 
 <div class="shell">
-  <h1>Award Calendar</h1>
-  <p class="sub">See the cheapest days to fly a route on points — pick a specific program or search a whole alliance.</p>
+  <h1>Multi-City Fare Calendar</h1>
+  <p class="sub">Build a trip leg by leg. Each leg gets its own fare calendar — pick the cheapest day for each and watch your total build.</p>
 
   <div class="caltabs">
     <a href="/dashboard/calendar/cash" class="btn">$ Cash Calendar</a>
-    <a href="/dashboard/calendar/award" class="btn tabactive">✦ Award Calendar</a>
-    <a href="/dashboard/calendar/multi" class="btn">⇄ Multi-City</a>
+    <a href="/dashboard/calendar/award" class="btn">✦ Award Calendar</a>
+    <a href="/dashboard/calendar/multi" class="btn tabactive">⇄ Multi-City</a>
   </div>
 
-  <div class="controls">
+  <div class="global-controls">
     <div class="ctrl-grp">
-      <span class="flbl">From</span>
-      <div class="ap-wrap">
-        <input type="text" id="calFrom" class="ap-input" placeholder="DFW" autocomplete="off"
-               oninput="apSearch(this)" onfocus="apSearch(this)" onblur="setTimeout(()=>apHide(this),200)">
-        <div class="ap-drop"></div>
-      </div>
-    </div>
-    <div class="ctrl-grp">
-      <span class="flbl">To</span>
-      <div class="ap-wrap">
-        <input type="text" id="calTo" class="ap-input" placeholder="NRT" autocomplete="off"
-               oninput="apSearch(this)" onfocus="apSearch(this)" onblur="setTimeout(()=>apHide(this),200)">
-        <div class="ap-drop"></div>
-      </div>
-    </div>
-    <div class="ctrl-grp">
-      <span class="flbl">Trip</span>
-      <select id="calTrip">
-        <option value="one_way" selected>One way</option>
-        <option value="round_trip">Round trip</option>
-      </select>
-    </div>
-    <div class="ctrl-grp">
-      <span class="flbl">Month</span>
-      <select id="calMonth"></select>
-    </div>
-    <div class="ctrl-grp">
-      <span class="flbl">Cabin</span>
-      <select id="calCabin">
+      <span class="flbl">Cabin (all legs)</span>
+      <select id="globalCabin">
         <option value="economy">Economy</option>
         <option value="premium_economy">Prem Economy</option>
         <option value="business" selected>Business</option>
@@ -144,74 +127,39 @@ select option,select optgroup{background:#0a0e1c}
       </select>
     </div>
     <div class="ctrl-grp">
-      <span class="flbl">Award program <span style="color:var(--teal)">*</span></span>
-      <select id="calProgram">
-        <option value="any" selected>All programs</option>
-        <optgroup label="Oneworld">
-          <option value="american">American AAdvantage</option>
-          <option value="alaska">Alaska Mileage Plan</option>
-          <option value="british">British Airways Avios</option>
-          <option value="cathay">Cathay Asia Miles</option>
-          <option value="finnair">Finnair Plus</option>
-          <option value="iberia">Iberia Plus</option>
-          <option value="japan">JAL Mileage Bank</option>
-          <option value="qantas">Qantas Points</option>
-          <option value="_ow">— All Oneworld —</option>
-        </optgroup>
-        <optgroup label="SkyTeam">
-          <option value="delta">Delta SkyMiles</option>
-          <option value="flying_blue">Air France/KLM Flying Blue</option>
-          <option value="korean">Korean Air SKYPASS</option>
-          <option value="aeromexico">Aeromexico Rewards</option>
-          <option value="virginatlantic">Virgin Atlantic</option>
-          <option value="_st">— All SkyTeam —</option>
-        </optgroup>
-        <optgroup label="Star Alliance">
-          <option value="united">United MileagePlus</option>
-          <option value="aeroplan">Air Canada Aeroplan</option>
-          <option value="lufthansa">Lufthansa Miles &amp; More</option>
-          <option value="ana">ANA Mileage Club</option>
-          <option value="singapore">Singapore KrisFlyer</option>
-          <option value="avianca">Avianca LifeMiles</option>
-          <option value="turkish">Turkish Miles&amp;Smiles</option>
-          <option value="_sa">— All Star Alliance —</option>
-        </optgroup>
-        <optgroup label="Other">
-          <option value="emirates">Emirates Skywards</option>
-          <option value="etihad">Etihad Guest</option>
-          <option value="jetblue">JetBlue TrueBlue</option>
-        </optgroup>
+      <span class="flbl">Airline / Alliance</span>
+      <select id="globalAirline">
+        <option value="any" selected>All airlines</option>
+        <option value="_alliance_oneworld">All Oneworld</option>
+        <option value="_alliance_skyteam">All SkyTeam</option>
+        <option value="_alliance_star">All Star Alliance</option>
       </select>
     </div>
-    <button class="search-btn" id="searchBtn" onclick="searchCalendar()"><span class="btn-spin"></span>Search →</button>
   </div>
 
   <div class="legend">
-    <div class="legend-item"><span class="legend-dot" style="background:#22c55e"></span>Best value miles</div>
-    <div class="legend-item"><span class="legend-dot" style="background:#eab308"></span>Mid-range</div>
-    <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>Most miles</div>
-    <div class="legend-item" style="color:var(--muted)">· Click any day to track it</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#22c55e"></span>Lowest</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#eab308"></span>Mid</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>Highest</div>
+    <div class="legend-item" style="color:var(--muted)">· Click a day to lock that leg</div>
   </div>
 
-  <div id="loadingMsg"><div class="spinner"></div><div>Searching award space across the month…</div></div>
-  <div id="detailPanel"></div>
+  <div id="legsContainer"></div>
 
-  <div class="cal-wrap">
-    <div class="cal-header">
-      <div class="cal-title" id="calLabel">Pick a route and search</div>
-      <div class="cal-nav">
-        <button onclick="changeMonth(-1)">◀</button>
-        <button onclick="changeMonth(1)">▶</button>
-      </div>
+  <button class="add-leg-btn" onclick="addLeg()">+ Add another leg</button>
+
+  <div class="total-bar">
+    <div>
+      <div class="total-info" id="totalInfo">Select a date for each leg to see your total</div>
+      <div class="total-price" id="totalPrice">$0<span class="partial" id="totalPartial"></span></div>
     </div>
-    <div class="cal-grid" id="calGrid"></div>
+    <button class="btn gold" onclick="trackAllLegs()" id="trackAllBtn" style="display:none">+ Track full itinerary</button>
   </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
-
 const AIRPORTS = [
   {code:"DFW",name:"Dallas/Fort Worth, TX, US"},
   {code:"LAX",name:"Los Angeles, CA, US"},
@@ -476,6 +424,12 @@ const AIRPORTS = [
   {code:"GEO",name:"Georgetown, GY"},
 ];
 function toast(m,d=2800){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d)}
+const MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const CABIN_LABELS={economy:'Economy',premium_economy:'Prem Economy',business:'Business',first:'First'};
+
+let legCount=0;
+const legState={};  // legId -> {from,to,year,month,fareData,selectedDate,selectedPrice}
+
 function apSearch(inp){
   const q=(inp.value||'').trim().toUpperCase();
   const drop=inp.parentElement.querySelector('.ap-drop');
@@ -488,175 +442,200 @@ function apSearch(inp){
 }
 function apPick(el,code){const w=el.closest('.ap-wrap');w.querySelector('.ap-input').value=code;w.querySelector('.ap-drop').style.display='none';}
 function apHide(inp){const d=inp.parentElement.querySelector('.ap-drop');if(d)d.style.display='none';}
-const MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
-function initMonthPicker(onChange){
-  const sel=document.getElementById('calMonth');
-  if(!sel)return;
+
+function monthOptions(selId){
   const now=new Date();
   let opts='';
   for(let i=0;i<12;i++){
     const d=new Date(now.getFullYear(),now.getMonth()+i,1);
     opts+=`<option value="${d.getFullYear()}-${d.getMonth()}">${MN[d.getMonth()]} ${d.getFullYear()}</option>`;
   }
-  sel.innerHTML=opts;
-  sel.addEventListener('change',onChange);
+  return opts;
 }
 
-
-let currentYear, currentMonth, fareData={};
-const now=new Date();
-currentYear=now.getFullYear(); currentMonth=now.getMonth();
-
-initMonthPicker(()=>{
-  const [y,m]=document.getElementById('calMonth').value.split('-').map(Number);
-  currentYear=y; currentMonth=m;
-  if(Object.keys(fareData).length)searchCalendar();
-  else renderSkeleton();
-});
-
-const CABIN_LABELS={economy:'Economy',premium_economy:'Prem Economy',business:'Business',first:'First'};
-const PROG_LABELS={american:'American AAdvantage',alaska:'Alaska',british:'BA Avios',cathay:'Cathay',finnair:'Finnair',iberia:'Iberia',japan:'JAL',qantas:'Qantas',delta:'Delta',flying_blue:'Flying Blue',korean:'Korean Air',aeromexico:'Aeromexico',virginatlantic:'Virgin Atlantic',united:'United',aeroplan:'Aeroplan',lufthansa:'Lufthansa',ana:'ANA',singapore:'KrisFlyer',avianca:'LifeMiles',turkish:'Turkish',emirates:'Emirates',etihad:'Etihad',jetblue:'JetBlue'};
-const GROUPS={
-  _ow:['american','alaska','british','cathay','finnair','iberia','japan','qantas'],
-  _st:['delta','flying_blue','korean','aeromexico','virginatlantic'],
-  _sa:['united','aeroplan','lufthansa','ana','singapore','avianca','turkish']
-};
-
-function changeMonth(delta){
-  currentMonth+=delta;
-  if(currentMonth>11){currentMonth=0;currentYear++;}
-  if(currentMonth<0){currentMonth=11;currentYear--;}
-  const sel=document.getElementById('calMonth');
-  if(sel)sel.value=`${currentYear}-${currentMonth}`;
-  if(Object.keys(fareData).length)searchCalendar();
-  else renderSkeleton();
+function addLeg(presetFrom){
+  legCount++;
+  const id=legCount;
+  const now=new Date();
+  legState[id]={from:presetFrom||'',to:'',year:now.getFullYear(),month:now.getMonth(),fareData:{},selectedDate:null,selectedPrice:null};
+  const container=document.getElementById('legsContainer');
+  const div=document.createElement('div');
+  div.className='leg-card';
+  div.id='leg_'+id;
+  div.innerHTML=`
+    <div class="leg-header">
+      <div class="leg-title"><span class="leg-badge">${document.querySelectorAll('.leg-card').length+1}</span> Leg ${document.querySelectorAll('.leg-card').length+1}</div>
+      ${id>1?`<button class="remove-leg" onclick="removeLeg(${id})">×</button>`:''}
+    </div>
+    <div class="leg-inputs">
+      <div class="ctrl-grp"><span class="flbl">From</span>
+        <div class="ap-wrap"><input type="text" class="ap-input legFrom" value="${presetFrom||''}" placeholder="DFW" autocomplete="off" oninput="apSearch(this)" onfocus="apSearch(this)" onblur="setTimeout(()=>apHide(this),200)"><div class="ap-drop"></div></div>
+      </div>
+      <div class="ctrl-grp"><span class="flbl">To</span>
+        <div class="ap-wrap"><input type="text" class="ap-input legTo" placeholder="NRT" autocomplete="off" oninput="apSearch(this)" onfocus="apSearch(this)" onblur="setTimeout(()=>apHide(this),200)"><div class="ap-drop"></div></div>
+      </div>
+      <div class="ctrl-grp"><span class="flbl">Month</span>
+        <select class="legMonth" onchange="legMonthChange(${id},this)">${monthOptions()}</select>
+      </div>
+      <button class="leg-search-btn" onclick="searchLeg(${id})"><span class="btn-spin"></span>Find fares</button>
+    </div>
+    <div class="leg-selected" id="legSel_${id}"></div>
+    <div class="mini-cal" id="miniCal_${id}">
+      <div class="mini-nav">
+        <span class="mini-month-lbl" id="miniLbl_${id}"></span>
+        <div><button onclick="legNav(${id},-1)">◀</button> <button onclick="legNav(${id},1)">▶</button></div>
+      </div>
+      <div class="mini-grid" id="miniGrid_${id}"></div>
+    </div>`;
+  container.appendChild(div);
 }
 
-function renderSkeleton(){
-  const grid=document.getElementById('calGrid');
-  const headers=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-day-header">${d}</div>`).join('');
-  const firstDay=new Date(currentYear,currentMonth,1).getDay();
-  const dim=new Date(currentYear,currentMonth+1,0).getDate();
-  let cells='';
-  for(let i=0;i<firstDay;i++)cells+='<div class="cal-cell empty"></div>';
-  for(let day=1;day<=dim;day++)cells+=`<div class="cal-cell no-data"><div class="day-num">${day}</div><div class="day-price no-data">—</div></div>`;
-  grid.innerHTML=headers+cells;
-  document.getElementById('calLabel').textContent=`${MN[currentMonth]} ${currentYear}`;
+function removeLeg(id){
+  const el=document.getElementById('leg_'+id);
+  if(el)el.remove();
+  delete legState[id];
+  renumberLegs();
+  updateTotal();
 }
 
-function renderLoadingCells(){
-  const grid=document.getElementById('calGrid');
-  const headers=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-day-header">${d}</div>`).join('');
-  const firstDay=new Date(currentYear,currentMonth,1).getDay();
-  const dim=new Date(currentYear,currentMonth+1,0).getDate();
-  let cells='';
-  for(let i=0;i<firstDay;i++)cells+='<div class="cal-cell empty"></div>';
-  for(let day=1;day<=dim;day++)cells+=`<div class="cal-cell loading"><div class="day-num">${day}</div></div>`;
-  grid.innerHTML=headers+cells;
+function renumberLegs(){
+  document.querySelectorAll('.leg-card').forEach((card,i)=>{
+    card.querySelector('.leg-badge').textContent=i+1;
+    card.querySelector('.leg-title').childNodes[1].textContent=' Leg '+(i+1);
+  });
 }
 
-async function searchCalendar(){
-  const from=document.getElementById('calFrom').value.trim().toUpperCase();
-  const to=document.getElementById('calTo').value.trim().toUpperCase();
-  const cabin=document.getElementById('calCabin').value;
-  const progSel=document.getElementById('calProgram').value;
-  if(!from||!to){toast('Enter origin and destination');return;}
-  let programs=[];
-  if(progSel==='any')programs=[];
-  else if(GROUPS[progSel])programs=GROUPS[progSel];
-  else programs=[progSel];
-  document.getElementById('loadingMsg').style.display='block';
-  document.getElementById('searchBtn').classList.add('loading');
-  fareData={};
-  renderLoadingCells();
-  const dim=new Date(currentYear,currentMonth+1,0).getDate();
-  const startDate=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}-01`;
-  const endDate=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(dim).padStart(2,'0')}`;
-  window._calFrom=from; window._calTo=to; window._calCabin=cabin; window._calProg=progSel;
-  window._calTrip=document.getElementById('calTrip').value;
+function legMonthChange(id,sel){
+  const [y,m]=sel.value.split('-').map(Number);
+  legState[id].year=y; legState[id].month=m;
+  if(Object.keys(legState[id].fareData).length)searchLeg(id);
+}
+
+function legNav(id,delta){
+  let {year,month}=legState[id];
+  month+=delta;
+  if(month>11){month=0;year++;} if(month<0){month=11;year--;}
+  legState[id].year=year; legState[id].month=month;
+  const card=document.getElementById('leg_'+id);
+  const sel=card.querySelector('.legMonth');
+  if(sel)sel.value=`${year}-${month}`;
+  searchLeg(id);
+}
+
+async function searchLeg(id){
+  const card=document.getElementById('leg_'+id);
+  const from=card.querySelector('.legFrom').value.trim().toUpperCase();
+  const to=card.querySelector('.legTo').value.trim().toUpperCase();
+  if(!from||!to){toast('Enter From and To for this leg');return;}
+  legState[id].from=from; legState[id].to=to;
+  const cabin=document.getElementById('globalCabin').value;
+  const airline=document.getElementById('globalAirline').value;
+  const {year,month}=legState[id];
+  const btn=card.querySelector('.leg-search-btn');
+  btn.classList.add('loading');
+  document.getElementById('miniCal_'+id).classList.add('show');
+  renderMiniLoading(id);
+  const dim=new Date(year,month+1,0).getDate();
+  const startDate=`${year}-${String(month+1).padStart(2,'0')}-01`;
+  const endDate=`${year}-${String(month+1).padStart(2,'0')}-${String(dim).padStart(2,'0')}`;
   try{
-    const res=await fetch('/api/calendar/award',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({origin:from,destination:to,cabin,start_date:startDate,end_date:endDate,programs})});
+    const res=await fetch('/api/calendar/cash',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({origin:from,destination:to,cabin,start_date:startDate,end_date:endDate,trip_type:'oneway',airline})});
     const data=await res.json();
-    document.getElementById('loadingMsg').style.display='none';
-    document.getElementById('searchBtn').classList.remove('loading');
-    if(data.error){toast('⚠ '+data.error,4000);renderSkeleton();return;}
-    (data.results||[]).forEach(r=>{fareData[r.date]={miles:r.miles,taxes:r.taxes,program:r.program||''};});
-    renderCalendar();
-    if(!data.results||!data.results.length)toast('No award space found for this route/month');
+    btn.classList.remove('loading');
+    if(data.error){toast('⚠ '+data.error,4000);return;}
+    legState[id].fareData={};
+    (data.results||[]).forEach(r=>{legState[id].fareData[r.date]={price:r.price,airline:r.airline,stops:r.stops,duration:r.duration};});
+    renderMiniCal(id);
+    if(!data.results||!data.results.length)toast(`No fares for ${from}→${to} that month`);
   }catch(e){
-    document.getElementById('loadingMsg').style.display='none';
-    document.getElementById('searchBtn').classList.remove('loading');
-    toast('Search failed'); renderSkeleton();
+    btn.classList.remove('loading');
+    toast('Leg search failed');
   }
 }
 
-function renderCalendar(){
-  const grid=document.getElementById('calGrid');
-  const headers=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-day-header">${d}</div>`).join('');
-  const firstDay=new Date(currentYear,currentMonth,1).getDay();
-  const dim=new Date(currentYear,currentMonth+1,0).getDate();
-  const allMiles=Object.values(fareData).map(f=>f.miles).filter(Boolean);
-  const minM=allMiles.length?Math.min(...allMiles):0;
-  const maxM=allMiles.length?Math.max(...allMiles):0;
+function renderMiniLoading(id){
+  const {year,month}=legState[id];
+  const grid=document.getElementById('miniGrid_'+id);
+  const hdr=['S','M','T','W','T','F','S'].map(d=>`<div class="mini-dayhdr">${d}</div>`).join('');
+  const firstDay=new Date(year,month,1).getDay();
+  const dim=new Date(year,month+1,0).getDate();
   let cells='';
-  for(let i=0;i<firstDay;i++)cells+='<div class="cal-cell empty"></div>';
-  for(let day=1;day<=dim;day++){
-    const dateStr=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    const f=fareData[dateStr];
-    if(f&&f.miles){
-      const range=maxM-minM||1;
-      const pct=(f.miles-minM)/range;
+  for(let i=0;i<firstDay;i++)cells+='<div class="mini-cell empty"></div>';
+  for(let d=1;d<=dim;d++)cells+=`<div class="mini-cell loading"></div>`;
+  grid.innerHTML=hdr+cells;
+  document.getElementById('miniLbl_'+id).textContent=`${legState[id].from} → ${legState[id].to} · ${MN[month]} ${year}`;
+}
+
+function renderMiniCal(id){
+  const {year,month,fareData,selectedDate}=legState[id];
+  const grid=document.getElementById('miniGrid_'+id);
+  const hdr=['S','M','T','W','T','F','S'].map(d=>`<div class="mini-dayhdr">${d}</div>`).join('');
+  const firstDay=new Date(year,month,1).getDay();
+  const dim=new Date(year,month+1,0).getDate();
+  const prices=Object.values(fareData).map(f=>f.price).filter(Boolean);
+  const minP=prices.length?Math.min(...prices):0, maxP=prices.length?Math.max(...prices):0;
+  let cells='';
+  for(let i=0;i<firstDay;i++)cells+='<div class="mini-cell empty"></div>';
+  for(let d=1;d<=dim;d++){
+    const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const f=fareData[ds];
+    if(f&&f.price){
+      const range=maxP-minP||1, pct=(f.price-minP)/range;
       let cls='mid'; if(pct<=0.33)cls='low'; else if(pct>=0.66)cls='high';
-      const isBest=f.miles===minM;
-      cells+=`<div class="cal-cell ${cls}" onclick="showDetail('${dateStr}')">
-        ${isBest?'<span class="best-badge" style="background:var(--teal);color:#001a18">BEST</span>':''}
-        <div class="day-num">${day}</div>
-        <div class="day-price">${(f.miles/1000).toFixed(0)}k</div>
-        <div class="day-airline">${f.program||''}${f.taxes?' +$'+Math.round(f.taxes):''}</div></div>`;
+      if(selectedDate===ds)cls+=' selected';
+      cells+=`<div class="mini-cell ${cls}" onclick="selectLegDate(${id},'${ds}')"><div class="mini-daynum">${d}</div><div class="mini-price">$${(f.price/1000).toFixed(1)}k</div></div>`;
     }else{
-      cells+=`<div class="cal-cell no-data"><div class="day-num">${day}</div><div class="day-price no-data">—</div></div>`;
+      cells+=`<div class="mini-cell no-data"><div class="mini-daynum">${d}</div></div>`;
     }
   }
-  grid.innerHTML=headers+cells;
-  const progLabel=window._calProg==='any'?'All programs':(document.getElementById('calProgram').selectedOptions[0]?.text||window._calProg);
-  document.getElementById('calLabel').textContent=`${window._calFrom} → ${window._calTo} · ${CABIN_LABELS[window._calCabin]} · ${progLabel} · ${MN[currentMonth]} ${currentYear}`;
+  grid.innerHTML=hdr+cells;
+  document.getElementById('miniLbl_'+id).textContent=`${legState[id].from} → ${legState[id].to} · ${MN[month]} ${year}`;
 }
 
-function showDetail(dateStr){
-  const f=fareData[dateStr];
+function selectLegDate(id,ds){
+  const f=legState[id].fareData[ds];
   if(!f)return;
-  const panel=document.getElementById('detailPanel');
-  panel.style.display='block';
-  const cpm=f.taxes?((f.miles)/(f.miles/1000)).toFixed(0):null;
-  const tripLabel=(window._calTrip==='round_trip')?'Round trip':'One way';
-  panel.innerHTML=`<h3>${window._calFrom} → ${window._calTo} · ${dateStr}</h3>
-    <div class="detail-row"><span class="detail-label">${tripLabel} miles</span><span class="detail-value" style="color:var(--teal)">${f.miles.toLocaleString()} mi</span></div>
-    <div class="detail-row"><span class="detail-label">Taxes &amp; fees</span><span class="detail-value">${f.taxes?'$'+Math.round(f.taxes):'—'}</span></div>
-    <div class="detail-row"><span class="detail-label">Program</span><span class="detail-value">${PROG_LABELS[f.program]||f.program||'—'}</span></div>
-    <div class="detail-row"><span class="detail-label">Cabin</span><span class="detail-value">${CABIN_LABELS[window._calCabin]}</span></div>
-    <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${dateStr}</span></div>
-    <div style="margin-top:14px;display:flex;gap:10px">
-      <button class="btn teal" onclick="trackThisDate('${dateStr}')">+ Track this date</button>
-      <button class="btn" onclick="document.getElementById('detailPanel').style.display='none'">Close</button>
-    </div>`;
-  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  legState[id].selectedDate=ds;
+  legState[id].selectedPrice=f.price;
+  renderMiniCal(id);
+  const sel=document.getElementById('legSel_'+id);
+  sel.className='leg-selected show';
+  const stopTxt=f.stops===0?'Nonstop':(f.stops?f.stops+' stop'+(f.stops>1?'s':''):'');
+  sel.innerHTML=`<span class="sel-info">✓ ${ds} · ${f.airline||''}${stopTxt?' · '+stopTxt:''}${f.duration?' · '+f.duration:''}</span><span class="sel-price">$${f.price.toLocaleString()}</span>`;
+  updateTotal();
 }
 
-async function trackThisDate(dateStr){
-  const f=fareData[dateStr];
-  const prog=f&&f.program?f.program:(window._calProg!=='any'?window._calProg:'');
-  const res=await fetch('/api/award/routes',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({label:`${window._calFrom}→${window._calTo} ${dateStr}`,
-      origin:window._calFrom,destination:window._calTo,date:dateStr,
-      trip_type:window._calTrip||'one_way',cabin:window._calCabin,alliance:'any',
-      programs:prog?[prog]:[],max_miles:f?f.miles:null,only_direct:false})});
+function updateTotal(){
+  const ids=Object.keys(legState);
+  const selected=ids.filter(id=>legState[id].selectedDate);
+  const total=selected.reduce((s,id)=>s+(legState[id].selectedPrice||0),0);
+  const totalLegs=document.querySelectorAll('.leg-card').length;
+  document.getElementById('totalPrice').innerHTML=`$${total.toLocaleString()}<span class="partial" id="totalPartial">${selected.length<totalLegs?` · ${selected.length}/${totalLegs} legs selected`:' · all legs ✓'}</span>`;
+  if(selected.length===totalLegs&&totalLegs>0){
+    document.getElementById('totalInfo').textContent='Full itinerary priced — ready to track';
+    document.getElementById('trackAllBtn').style.display='';
+  }else{
+    document.getElementById('totalInfo').textContent='Select a date for each leg to see your total';
+    document.getElementById('trackAllBtn').style.display='none';
+  }
+}
+
+async function trackAllLegs(){
+  const ids=Object.keys(legState).filter(id=>legState[id].selectedDate);
+  const cabin=document.getElementById('globalCabin').value;
+  const slices=ids.map(id=>({departure_id:legState[id].from,arrival_id:legState[id].to,date:legState[id].selectedDate}));
+  const total=ids.reduce((s,id)=>s+(legState[id].selectedPrice||0),0);
+  const label=slices.map(s=>s.departure_id).join('→')+'→'+slices[slices.length-1].arrival_id;
+  const res=await fetch('/api/cash/routes',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({label,slices,alliance:'any',airlines:[],cabin,target_price:total})});
   const data=await res.json();
   if(data.error){toast('⚠ '+data.error);return;}
-  toast('✓ Added to Award Trips!');
+  toast('✓ Multi-city itinerary added to Cash Trips!');
 }
 
-renderSkeleton();
+// Start with one leg
+addLeg();
 </script>
 </body>
 </html>
