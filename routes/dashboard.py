@@ -82,7 +82,20 @@ def fifth_freedom():
 @dashboard_bp.route("/calendar")
 @login_required
 def calendar():
-    return render_template("dashboard/calendar.html")
+    # Redirect old calendar to cash calendar
+    return render_template("dashboard/calendar_cash.html")
+
+
+@dashboard_bp.route("/calendar/cash")
+@login_required
+def calendar_cash_page():
+    return render_template("dashboard/calendar_cash.html")
+
+
+@dashboard_bp.route("/calendar/award")
+@login_required
+def calendar_award_page():
+    return render_template("dashboard/calendar_award.html")
 
 
 @dashboard_bp.route("/explore")
